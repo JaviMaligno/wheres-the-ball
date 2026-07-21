@@ -2,8 +2,47 @@
 
 > Recomputación independiente desde los JSON crudos (`scripts/audit_fase1.py`), con
 > bootstrap, chequeo de degeneración, métrica isotrópica y exclusión de fuga. Objetivo:
-> no concluir nada que los datos no sostengan. **Resultado: varias conclusiones previas
-> estaban sobre-afirmadas por el tamaño de muestra (n=14 por bin).**
+> no concluir nada que los datos no sostengan.
+
+## Resultados a n=92 (muestra escalada, single frame) — AUTORITATIVO
+
+Tras escalar de 42 a **92 ítems** (tope de test a 2 ítems/clip; near=40, far=40, mid=12):
+
+**Métrica primaria — correlación predicción↔GT, con IC bootstrap:**
+
+| Modelo | corr_x [IC95%] | corr_y [IC95%] | señal |
+|---|---|---|---|
+| Claude Opus 4.8 | +0.37 [+0.16,+0.55] | +0.34 [+0.04,+0.59] | **sí (x e y)** |
+| GPT-5.4 | +0.26 [+0.02,+0.49] | +0.17 [−0.08,+0.43] | parcial (solo x) |
+| Claude Sonnet 4.6 | −0.01 [−0.25,+0.23] | +0.09 [−0.20,+0.37] | **no (nulo)** |
+
+**Bin `far` (balones descentrados, n=40) — ¿se bate al baseline centro?**
+
+| Modelo | error mediano [IC] | win-rate vs centro [IC] |
+|---|---|---|
+| centro | 0.357 | — |
+| GPT-5.4 | 0.335 [0.18,0.48] | 55% [40,70] |
+| Claude Opus 4.8 | 0.346 [0.23,0.40] | 52% [38,68] |
+| Claude Sonnet 4.6 | 0.434 | 40% [25,55] |
+
+### Conclusiones robustas (n=92)
+
+1. **Opus 4.8 tiene la señal más clara** (corr significativa en x e y); **GPT-5.4 parcial**
+   (solo x); **Sonnet 4.6 nulo**. El orden previo "GPT>Opus" era artefacto de n=42 (la
+   corr_y de GPT cayó de 0.43 a 0.17 al escalar). Orden real: **Opus ≳ GPT > Sonnet(nulo)**.
+2. **Ningún modelo bate de forma fiable al centro en balones descentrados** desde una sola
+   imagen (win-rates 55/52% con IC que incluyen 50%). La intuición es **real pero
+   limitada**: correlacionan con la posición del balón, pero un frame no basta para
+   resolver los descentrados. (El "GPT 64% en far" de n=42 era ruido.)
+3. Centroide de jugadores (B1): el peor.
+
+## Lección del n=42 (por qué escalamos)
+
+Con n=14/bin, los cortes por distancia al centro y RQ2 **no eran concluyentes** (IC
+bootstrap amplísimos; la "casi-mitad del error en far" de RQ2 era artefacto de medianas
+de grupo, movido por 2 ítems). Escalar a n=92 corrigió el ranking de modelos y descartó
+el "bate al centro en far". Moraleja: reportar **correlación-con-IC** como primaria y
+mejoras **pareadas** con IC, nunca medianas de grupo a n pequeño.
 
 ## Qué NO sostienen los datos (n=42; 14 por bin)
 
