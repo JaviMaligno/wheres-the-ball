@@ -67,7 +67,11 @@ def select(cands, axis, targets):
     strata = STATE_STRATA if axis == "state" else CENTER_STRATA
     chosen, per_clip = [], {}
     counts = {k: 0 for k in strata}
-    for key in sorted(strata, key=lambda k: targets[k]):  # rarest target first
+    # Fill the SCARCEST stratum first (fewest available candidates), so a rare bin
+    # (e.g. off-center 'far' balls, which the ball-following camera makes uncommon)
+    # isn't starved of the per-clip budget by abundant bins.
+    avail = {k: sum(1 for cd in cands if cd[axis] == k) for k in strata}
+    for key in sorted(strata, key=lambda k: avail[k]):
         for cd in cands:
             if cd[axis] != key or counts[key] >= targets[key]:
                 continue

@@ -78,6 +78,29 @@ def main():
         lk = single.get(iid, {}).get("leak", {}) or {}
         return bool(lk.get("ball_visible") or lk.get("artifact_visible"))
 
+    # ---- 0: PRIMARY metric — correlation pred vs GT, with bootstrap CI (all items) ----
+    print("=== Correlación pred–GT (métrica primaria, todos los ítems) ===")
+    print(f"{'system':14} n   corr_x [95%CI]        corr_y [95%CI]")
+    for s in ["gpt", "claude", "claude_opus", "gpt_informed", "claude_informed"]:
+        P, G = [], []
+        for iid in man:
+            p = pred(single, iid, s); gt = (man[iid]["gt"]["x"], man[iid]["gt"]["y"])
+            if p is not None:
+                P.append(p); G.append(gt)
+        if len(P) < 5:
+            continue
+        P, G = np.array(P), np.array(G)
+
+        def cc(a, b):
+            return np.corrcoef(a, b)[0, 1] if np.std(a) > 1e-9 else float("nan")
+        bx, by = [], []
+        for _ in range(10000):
+            idx = rng.integers(0, len(P), len(P))
+            bx.append(cc(P[idx, 0], G[idx, 0])); by.append(cc(P[idx, 1], G[idx, 1]))
+        rx, ry = cc(P[:, 0], G[:, 0]), cc(P[:, 1], G[:, 1])
+        print(f"{s:14} {len(P):3} {rx:+.2f} [{np.nanpercentile(bx,2.5):+.2f},{np.nanpercentile(bx,97.5):+.2f}]"
+              f"   {ry:+.2f} [{np.nanpercentile(by,2.5):+.2f},{np.nanpercentile(by,97.5):+.2f}]")
+
     # ---- 1+2: far-bin medians with bootstrap CI (single), normalized + isotropic ----
     print("=== FAR bin (off-center) — single frame ===")
     print(f"{'system':12} n  med_norm  95%CI_norm        med_pxW   win_vs_center  CI")
