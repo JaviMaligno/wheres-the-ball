@@ -20,6 +20,7 @@ modelo ve la **jugada moverse** (jugadores reorientándose, corriendo hacia el b
 | Modelo | single | temporal | baseline centro |
 |---|---|---|---|
 | **gpt-5.4** | 0.219 | **0.124** | 0.359 |
+| claude-opus-4-8 | 0.311 | 0.352 | 0.359 |
 | claude-sonnet-4-6 | 0.410 | 0.401 | 0.359 |
 
 ### Global y por distancia al centro (mediana; single → temporal)
@@ -27,6 +28,7 @@ modelo ve la **jugada moverse** (jugadores reorientándose, corriendo hacia el b
 | Modelo | global | near | mid | far |
 |---|---|---|---|---|
 | gpt-5.4 | 0.117 → **0.089** | 0.086 → 0.086 | 0.140 → 0.177 | 0.219 → **0.124** |
+| claude-opus-4-8 | 0.209 → 0.170 | 0.087 → 0.102 | 0.225 → **0.138** | 0.311 → 0.352 |
 | claude-sonnet-4-6 | 0.201 → 0.254 | 0.120 → 0.185 | 0.137 → 0.252 | 0.410 → 0.401 |
 
 ## Lectura
@@ -37,21 +39,28 @@ modelo ve la **jugada moverse** (jugadores reorientándose, corriendo hacia el b
    en estático— es donde el movimiento aporta. Es el comportamiento de un espectador:
    ver la jugada desplazarse resuelve la ambigüedad de un fotograma. GPT-temporal en
    `far` (0.124) pulveriza el baseline centro (0.359).
-2. **En Claude Sonnet 4.6 el temporal no ayuda —incluso empeora** (global 0.201 →
+2. **En Claude Opus 4.8 el temporal ayuda, pero en otro sitio** (global 0.209 → 0.170;
+   mejora en 49% de ítems). El beneficio está en el rango **medio** (`mid` 0.225 →
+   0.138), no en `far` (0.311 → 0.352, incluso peor). Es decir, el flagship de Anthropic
+   sí aprovecha el movimiento, pero no logra convertirlo en inferencia de los balones más
+   descentrados —justo donde GPT sí lo hace.
+3. **En Claude Sonnet 4.6 el temporal no ayuda —incluso empeora** (global 0.201 →
    0.254; `near`/`mid` peores; `far` sin cambio y aún peor que el centro). No convierte
    la secuencia en mejor inferencia; posiblemente se confunde con múltiples imágenes o
    sigue anclando central.
 
-**Conclusión.** RQ2 confirmado para el modelo capaz: el movimiento ayuda, y ayuda
-*justo* donde el frame estático es ambiguo. Pero es específico del modelo — refuerza la
-brecha de Fase 1: GPT-5.4 razona como espectador (estático + dinámico); Claude Sonnet
-4.6 no aprovecha ni lo uno ni lo otro en balones difíciles.
+**Conclusión.** RQ2 confirmado, pero con perfiles **específicos de cada modelo**:
+GPT-5.4 usa el movimiento *justo* donde el frame estático es ambiguo (`far`, casi lo
+halva) — el espectador de libro; Opus 4.8 lo aprovecha en el rango medio pero no en los
+balones más descentrados; Sonnet 4.6 no lo aprovecha en absoluto. Refuerza la brecha de
+Fase 1: solo GPT-5.4 convierte el contexto temporal en inferencia de los balones difíciles.
 
 ## Caveats
 
 - n=14 por bin (señal cualitativa; el ligero empeoramiento de GPT en `mid` es
   probablemente ruido). Escalar a ~500 con IC bootstrap.
 - La ordenación/etiquetado de las 4 imágenes podría afectar a Claude; convendría un
-  ablation (orden inverso, nº de frames) y probar `claude-opus-4-8`.
+  ablation (orden inverso, nº de frames). (`claude-opus-4-8` ya incluido.)
+- Opus tuvo algún error 500/529 transitorio de la API: single n=39, temporal n=38.
 - Frames de historia con el balón sin anotar llevan máscara vacía (posible balón visible
   en algún frame previo); es raro y no afecta al frame objetivo.

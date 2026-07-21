@@ -26,13 +26,17 @@ error 0.359). Así, ganar al centro en `far` es evidencia real de inferencia.
 | center | 0.101 | 0.201 | 0.359 |
 | centroid (B1) | 0.159 | 0.201 | 0.450 |
 | **gpt-5.4** | 0.086 | 0.140 | **0.219** |
+| claude-opus-4-8 | 0.087 | 0.225 | 0.311 |
 | claude-sonnet-4-6 | 0.120 | 0.137 | 0.410 |
+
+(claude-opus n=13 en cada bin: 3 ítems caídos por errores 500 transitorios de la API.)
 
 **Win-rate pareado (¿bate al centro ítem a ítem?)**
 
 | Sistema | global | solo `far` |
 |---|---|---|
 | gpt-5.4 | 23/42 (55%) | **9/14 (64%)** |
+| claude-opus-4-8 | 19/39 (49%) | 6/13 (46%) |
 | claude-sonnet-4-6 | 20/42 (48%) | 6/14 (43%) |
 | centroid | 9/42 (21%) | 3/14 (21%) |
 
@@ -43,13 +47,21 @@ error 0.359). Así, ganar al centro en `far` es evidencia real de inferencia.
    No es sesgo de cámara: infiere de verdad la posición del balón desde los jugadores.
 2. **Claude Sonnet 4.6 no lo consigue.** En `far` es **peor que el centro** (0.410 vs
    0.359) y gana solo 43%: ancla cerca del centro/cluster y falla cuando el balón está
-   genuinamente lejos. (Caveat de gama: Sonnet es media; falta `claude-opus-4-8`.)
-3. **El centroide de jugadores (B1) es el peor**, sobre todo en `far` (0.450). La
+   genuinamente lejos.
+3. **Claude Opus 4.8 queda en medio (resuelve el "gama vs Anthropic").** Iguala a GPT en
+   balones centrados (`near` 0.087) y tiene la mejor tasa de acierto exacto (PCK@.05 0.26,
+   poseedor 0.38 ≈ GPT), pero perfil **bimodal**: clava muchos y falla feo en otros, así
+   que su mediana global (0.209) no destaca. En `far` **mejora claramente a Sonnet**
+   (0.311 vs 0.410) y bate al baseline centro (0.359), pero **no alcanza a GPT** (0.219).
+   Conclusión: el flagship de Anthropic sí tiene intuición (mucho más que su gama media),
+   pero **GPT-5.4 mantiene la ventaja en el caso más difícil** (balón descentrado).
+4. **El centroide de jugadores (B1) es el peor**, sobre todo en `far` (0.450). La
    geometría naíf no sirve — el balón no está en el centroide (motiva la geometría fina
    del Nivel 3).
 
-Global (mediana): center 0.201 · centroid 0.239 · **gpt 0.117** · claude 0.201.
-PCK@.10: gpt 0.48 vs center 0.17. Acierto de poseedor: gpt 0.40 vs center 0.21.
+Global (mediana): center 0.201 · centroid 0.239 · **gpt 0.117** · claude 0.201 ·
+claude-opus 0.209 (media 0.226). PCK@.10: gpt 0.48 vs center 0.17. Acierto de poseedor:
+gpt 0.40 ≈ opus 0.38 ≫ sonnet 0.24 vs center 0.21.
 
 ### Por estado del balón (metadato)
 
@@ -68,9 +80,11 @@ mayoría balones de construcción en banda (lejos del centro y ambiguos desde un
 - **Fuga por motion blur**: la máscara ahora se dilata con la velocidad del balón
   (`extra_pad_px ∝ speed`); la tasa de fuga bajó de 6/42 → **4/42**.
 
-## Pendiente
+## Hecho después / pendiente
 
-- `claude-opus-4-8` (comparación flagship justa) y un VLM abierto (Qwen-VL).
-- **Condición temporal (RQ2)**: ¿mejora la inferencia de balones descentrados al ver la
-  jugada moverse? Es la hipótesis natural tras ver que un frame no basta en `far`.
-- Escalar a ~500 ítems con IC por bootstrap; prompt informado (RQ3).
+- ✅ `claude-opus-4-8` (comparación flagship): ver arriba (Opus entre Sonnet y GPT).
+- ✅ **Condición temporal (RQ2)**: ver [`fase-1-rq2-temporal.md`](./fase-1-rq2-temporal.md)
+  — el temporal casi halva el error de GPT en balones descentrados; Opus mejora en el
+  rango medio; Sonnet no.
+- Pendiente: VLM abierto (Qwen-VL); escalar a ~500 ítems con IC por bootstrap; prompt
+  informado (RQ3); ablation temporal (orden/nº de frames).
