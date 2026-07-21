@@ -44,6 +44,8 @@ def main() -> None:
     ap.add_argument("--no-leak", action="store_true")
     ap.add_argument("--gpt-deployment", default="gpt-5.4")
     ap.add_argument("--claude-model", default="claude-sonnet-4-6")
+    ap.add_argument("--claude-key", default="claude", help="prediction key for this Claude model")
+    ap.add_argument("--skip-gpt", action="store_true", help="don't (re)run GPT")
     args = ap.parse_args()
 
     _ensure_anthropic_key()
@@ -65,6 +67,9 @@ def main() -> None:
         except Exception as e:  # noqa: BLE001
             return {"error": f"{type(e).__name__}: {e}"}
 
+    def needs(rec, key):  # missing, or a previous error → retry
+        return key not in rec or (isinstance(rec.get(key), dict) and "error" in rec[key])
+
     for i, it in enumerate(items):
         rec = preds.get(it["id"], {})
         img = it["masked_path"]
@@ -83,14 +88,14 @@ def main() -> None:
             except Exception as e:  # noqa: BLE001
                 rec["leak"] = {"error": str(e)}
 
-        if "gpt" not in rec:
+        if not args.skip_gpt and needs(rec, "gpt"):
             rec["gpt"] = vlm(azure_gpt.localize, img, PROMPTS["neutral"], deployment=args.gpt_deployment)
-        if "claude" not in rec:
-            rec["claude"] = vlm(anthropic_claude.localize, img, PROMPTS["neutral"], model=args.claude_model)
+        if needs(rec, args.claude_key):
+            rec[args.claude_key] = vlm(anthropic_claude.localize, img, PROMPTS["neutral"], model=args.claude_model)
 
         preds[it["id"]] = rec
         PRED.write_text(json.dumps(preds, indent=2))  # incremental save
-        g = rec["gpt"].get("x"); c = rec["claude"].get("x")
+        g = (rec.get("gpt") or {}).get("x"); c = (rec.get(args.claude_key) or {}).get("x")
         leak = rec.get("leak", {})
         flag = "LEAK" if leak.get("ball_visible") or leak.get("artifact_visible") else "ok"
         print(f"[{i+1}/{len(items)}] {it['id']} ({it['state']}) "

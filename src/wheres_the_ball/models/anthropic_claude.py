@@ -25,8 +25,8 @@ def _client() -> anthropic.Anthropic:
             "../llm-language-limits/.env | cut -d= -f2-)"
         )
     if key.startswith("sk-ant-oat"):
-        return anthropic.Anthropic(auth_token=key, timeout=90.0, max_retries=2)
-    return anthropic.Anthropic(api_key=key, timeout=90.0, max_retries=2)
+        return anthropic.Anthropic(auth_token=key, timeout=90.0, max_retries=6)
+    return anthropic.Anthropic(api_key=key, timeout=90.0, max_retries=6)
 
 
 def _image_block(image_path: str) -> dict:

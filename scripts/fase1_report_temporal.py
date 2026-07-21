@@ -15,7 +15,7 @@ import pathlib
 from wheres_the_ball.eval.metrics import euclidean_norm, summarize
 
 OUT = pathlib.Path("results/fase1")
-MODELS = ["gpt", "claude"]
+MODELS = ["gpt", "claude", "claude_opus"]
 CENTER_BINS = ["near", "mid", "far"]
 
 

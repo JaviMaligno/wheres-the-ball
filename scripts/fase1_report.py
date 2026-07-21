@@ -19,7 +19,7 @@ from wheres_the_ball.eval import viz
 from wheres_the_ball.eval.metrics import euclidean_norm, summarize
 
 OUT = pathlib.Path("results/fase1")
-SYSTEMS = ["center", "centroid", "gpt", "claude"]
+SYSTEMS = ["center", "centroid", "gpt", "claude", "claude_opus"]
 STRATA = ["possession", "short_pass", "long_pass", "contested"]
 CENTER_BINS = ["near", "mid", "far"]
 PCK = [0.05, 0.10, 0.15]
