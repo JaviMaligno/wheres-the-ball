@@ -48,6 +48,13 @@ def build_mask(
     return mask
 
 
+def write_mask(path: str, height: int, width: int, bbox: BBox,
+               dilate_frac: float = 0.6) -> None:
+    """Save a white-on-black mask PNG (white = ball region) for external inpainters
+    like LaMa/iopaint, which expect image + mask pairs."""
+    cv2.imwrite(path, build_mask(height, width, bbox, dilate_frac=dilate_frac))
+
+
 def inpaint_ball(
     image_bgr: np.ndarray, bbox: BBox, dilate_frac: float = 0.6, radius: int = 3
 ) -> tuple[np.ndarray, np.ndarray]:
