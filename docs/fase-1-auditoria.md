@@ -14,6 +14,7 @@ Tras escalar de 42 a **92 ítems** (tope de test a 2 ítems/clip; near=40, far=4
 |---|---|---|---|
 | Claude Opus 4.8 | +0.37 [+0.16,+0.55] | +0.34 [+0.04,+0.59] | **sí (x e y)** |
 | GPT-5.4 | +0.26 [+0.02,+0.49] | +0.17 [−0.08,+0.43] | parcial (solo x) |
+| Qwen2.5-VL-7B (abierto) | +0.05 [−0.16,+0.26] | +0.21 [−0.02,+0.42] | muy débil (y borderline) |
 | Claude Sonnet 4.6 | −0.01 [−0.25,+0.23] | +0.09 [−0.20,+0.37] | **no (nulo)** |
 
 **Bin `far` (balones descentrados, n=40) — ¿se bate al baseline centro?**
@@ -30,6 +31,8 @@ Tras escalar de 42 a **92 ítems** (tope de test a 2 ítems/clip; near=40, far=4
 1. **Opus 4.8 tiene la señal más clara** (corr significativa en x e y); **GPT-5.4 parcial**
    (solo x); **Sonnet 4.6 nulo**. El orden previo "GPT>Opus" era artefacto de n=42 (la
    corr_y de GPT cayó de 0.43 a 0.17 al escalar). Orden real: **Opus ≳ GPT > Sonnet(nulo)**.
+   El **VLM abierto Qwen2.5-VL-7B** queda al nivel de Sonnet (señal muy débil: x nula,
+   y borderline) — la inferencia del balón emerge solo en los flagship cerrados grandes.
 2. **Ningún modelo bate de forma fiable al centro en balones descentrados** desde una sola
    imagen (win-rates 55/52% con IC que incluyen 50%). La intuición es **real pero
    limitada**: correlacionan con la posición del balón, pero un frame no basta para
