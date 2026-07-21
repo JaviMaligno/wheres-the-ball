@@ -11,6 +11,7 @@ dependencies = [
     "numpy>=1.26",
     "opencv-python-headless>=4.9",
     "openai>=1.40",
+    "anthropic>=0.39",
     "matplotlib>=3.8",
     "python-dotenv>=1.0",
     "pydantic>=2.7",

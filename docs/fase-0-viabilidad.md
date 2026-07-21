@@ -75,28 +75,34 @@ Error = distancia euclídea normalizada al centro del balón (menor = mejor).
 |---|---|---|---|---|
 | center (baseline) | 12 | 0.311 | 0.237–0.353 | 0.297 |
 | GPT (`gpt-5.4`, API) | 12 | **0.177** | 0.063–0.290 | 0.208 |
-| Claude (vía agente) | 12 | 0.288 | 0.221–0.349 | 0.300 |
+| Claude (`claude-sonnet-4-6`, API) | 12 | 0.257 | 0.159–0.376 | 0.266 |
 
 Lectura:
 
-- **GPT-5.4 bate el baseline con holgura** (mediana 0.177 vs 0.311). En varios ítems
-  clava el balón sobre el jugador en posesión leyendo la orientación del grupo (ítem
-  008, error 0.004; ítems 002/003/007, error < 0.09). Señal fuerte de que un VLM
-  generalista tiene "intuición de espectador".
+- **Ambos VLMs generalistas baten el baseline "centro del frame"** (GPT 0.177, Claude
+  0.257 vs 0.311). **H1 confirmada** en el smoke test: la IA generalista tiene "intuición
+  de espectador". **GPT-5.4 va por delante de Claude Sonnet 4.6**, aunque cada uno gana
+  en distintos ítems (Claude clava el 000: 0.040 vs 0.066; el 009: 0.139 vs 0.220).
+- En varios ítems GPT clava el balón sobre el jugador en posesión leyendo la orientación
+  del grupo (008: 0.004; 002/003/007: < 0.09).
 - **Ambos fallan en pases largos** (ítem 004: el balón está en la banda opuesta, lejos
   del cluster). Confirma cualitativamente la bimodalidad de **H4**: la posterior
   p(balón|jugadores) es determinada en juego trenzado y ambigua en balón en vuelo.
 - **El cluster no siempre marca el balón** (ítem 006: bloque defensivo denso, pero el
   balón estaba con un jugador suelto). Buen recordatorio contra el baseline de centroide.
 
-### Limitación metodológica descubierta
+### Nota metodológica (resuelta)
 
-Claude-vía-agente rindió al nivel del baseline, muy por debajo de GPT-vía-API. La causa
-más probable es que el agente ve las imágenes a resolución reducida y estima coordenadas
-"a ojo", sin structured output ni la imagen a resolución nativa. **No es evidencia de que
-el modelo Claude sea peor**: el sustituto "Claude-agente" no es comparable a "GPT-API".
-→ Para el harness del artículo, **Claude debe ir por API** (`ANTHROPIC_API_KEY`) en
-igualdad de condiciones con GPT. Esta es la decisión más importante que sale de Fase 0.
+La primera pasada usó "Claude-vía-agente" (el propio Claude Code leyendo las imágenes) y
+rindió al nivel del baseline (mediana 0.288, en `claude_preds_agent.json`). Con **Claude
+por API** (Sonnet 4.6) sobre los mismos ítems, el error baja a 0.257 y bate el baseline
+→ confirmado que el proxy-agente **no** era comparable (resolución reducida + coords a
+ojo). El harness del artículo usa Claude por API (`scripts/fase0_claude_api.py`,
+adaptador `models/anthropic_claude.py`; soporta key normal `sk-ant-api` y token de
+suscripción `sk-ant-oat`).
+
+**Caveat de comparación justa**: `gpt-5.4` es flagship y `claude-sonnet-4-6` es gama
+media. Para flagship-vs-flagship en Fase 1, evaluar también `claude-opus-4-8`.
 
 ### Control de fuga
 
@@ -112,7 +118,8 @@ de fuga → VLM → métricas → viz), el enmascarado por inpainting es visualm
 y hay señal cuantitativa clara (GPT bate el baseline) *y* hallazgos cualitativos ricos
 (bimodalidad por estado del balón). Ajustes que entran en Fase 1:
 
-1. **Claude por API** en igualdad con GPT (bloqueante para la comparación de modelos).
+1. ~~**Claude por API** en igualdad con GPT~~ ✅ hecho: `claude-sonnet-4-6` vía API bate
+   el baseline (0.257). Falta añadir `claude-opus-4-8` para flagship-vs-flagship.
 2. **Dataset formal** con GT de jugadores (SoccerNet/ISSIA) para habilitar baselines
    B1–B4 y análisis en metros, y con estratos por estado del balón.
 3. **LaMa** para ítems con el balón sobre líneas/estructuras.
@@ -127,3 +134,5 @@ y hay señal cuantitativa clara (GPT bate el baseline) *y* hallazgos cualitativo
 | 2026-07-21 | Enmascarado por inpainting (OpenCV→LaMa) con control de fuga, en vez de blur/parche. |
 | 2026-07-21 | Modelos Fase 0: Azure `gpt-5.4` + Claude (vía agente). |
 | 2026-07-21 | **GO a Fase 1.** GPT bate el baseline (mediana 0.177 vs 0.311). Decisión clave: Claude debe ir por API en Fase 1 (el sustituto vía agente no es comparable). |
+| 2026-07-21 | Claude cableado por API (`sk-ant-api` de `llm-language-limits/.env`). `claude-sonnet-4-6` bate el baseline (0.257); GPT-5.4 sigue por delante. Ambos VLMs > baseline → H1 confirmada en smoke. |
+| 2026-07-21 | SoccerNet-Tracking verificado como dataset primario de Fase 1 (sin NDA); ver `fase-1-datos-soccernet.md`. |
