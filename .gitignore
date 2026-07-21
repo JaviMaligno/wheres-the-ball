@@ -9,10 +9,10 @@ __pycache__/
 .env
 .env.local
 
-# Data & outputs (large / regenerable)
-data/
-results/
-!results/.gitkeep
+# Data & outputs (large / regenerable) — anchored to repo root so the source
+# package src/wheres_the_ball/data/ is NOT ignored.
+/data/
+/results/
 
 # OS / editor
 .DS_Store
