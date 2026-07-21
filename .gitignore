@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.uv/
+
+# Env / secrets
+.env
+.env.local
+
+# Data & outputs (large / regenerable)
+data/
+results/
+!results/.gitkeep
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
