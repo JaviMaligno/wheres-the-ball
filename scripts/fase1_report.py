@@ -36,6 +36,7 @@ def main() -> None:
     viz_dir = OUT / "viz"; viz_dir.mkdir(exist_ok=True)
 
     errors = {s: [] for s in SYSTEMS}
+    errors_clean = {s: [] for s in SYSTEMS}  # excluding leak-flagged items
     by_stratum = {s: {st: [] for st in STRATA} for s in SYSTEMS}
     possessor_hit = {s: [] for s in SYSTEMS}
     leaked = 0
@@ -57,6 +58,8 @@ def main() -> None:
                 continue
             err = euclidean_norm(xy, gt)
             errors[s].append(err)
+            if not is_leak:
+                errors_clean[s].append(err)
             by_stratum[s][it["state"]].append(err)
             row[s] = round(err, 4)
             plot_preds[s] = xy
@@ -90,6 +93,14 @@ def main() -> None:
         L.append(f"| {s} | {d['n']} | {d['median']:.3f} | {d['q1']:.3f}–{d['q3']:.3f} | "
                  f"{d['mean']:.3f} | {pck(errors[s],.05):.2f} | {pck(errors[s],.10):.2f} | "
                  f"{pck(errors[s],.15):.2f} | {ph:.2f} |")
+    L += [f"\n## Global sin ítems con fuga (n={manifest['n']-leaked})\n",
+          "| Sistema | n | mediana | IQR | media |",
+          "|---|---|---|---|---|"]
+    for s in SYSTEMS:
+        d = summarize(errors_clean[s])
+        if d["n"] == 0:
+            L.append(f"| {s} | 0 |—|—|—|"); continue
+        L.append(f"| {s} | {d['n']} | {d['median']:.3f} | {d['q1']:.3f}–{d['q3']:.3f} | {d['mean']:.3f} |")
     L += ["\n## Mediana de error por estrato\n",
           "| Sistema | " + " | ".join(STRATA) + " |",
           "|---|" + "---|" * len(STRATA)]
