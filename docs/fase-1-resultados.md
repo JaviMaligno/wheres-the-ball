@@ -1,5 +1,11 @@
 # Fase 1 — resultados (SoccerNet-Tracking + LaMa, dataset de-sesgado)
 
+> ⚠️ **Leer junto a [`fase-1-auditoria.md`](./fase-1-auditoria.md).** Con n=14 por bin,
+> los cortes por distancia al centro y el ranking fino GPT/Opus/Sonnet **no son
+> estadísticamente concluyentes** (IC bootstrap muy amplios). Lo robusto es la
+> correlación con el GT (Sonnet ~0; GPT y Opus con señal). Las tablas de abajo son
+> estimaciones puntuales, pendientes de escalar la muestra.
+
 > Harness de Nivel 1 sobre SoccerNet-Tracking (split test), enmascarado **LaMa**,
 > control de fuga, prompt `v0-neutral`, **frame único**. El conjunto está **balanceado
 > por distancia del balón al centro** (14 near / 14 mid / 14 far) para neutralizar el

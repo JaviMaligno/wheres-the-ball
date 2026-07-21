@@ -1,5 +1,11 @@
 # Fase 1 · RQ2 — ¿ayuda el contexto temporal? (frame único vs. secuencia)
 
+> ⚠️ **Corrección tras auditoría ([`fase-1-auditoria.md`](./fase-1-auditoria.md)).** La
+> "casi-mitad del error en `far`" de abajo compara medianas de GRUPO; la mejora
+> **pareada** real en `far` tiene mediana Δ≈0 (IC incluye 0) para los tres modelos — el
+> temporal ayuda mucho en 2 ítems de 14 y nada en el resto. **No concluir que el temporal
+> desbloquea los balones descentrados** sin escalar la muestra.
+
 > Comparación **pareada** sobre los mismos 42 ítems del conjunto de-sesgado por
 > distancia al centro. Condición temporal = secuencia de 4 frames (t-75/-50/-25/t, ~1s
 > aparte), con el balón **borrado por LaMa en todos** (nunca visible). Prompt
