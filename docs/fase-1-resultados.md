@@ -1,64 +1,76 @@
-# Fase 1 — primeros resultados (SoccerNet-Tracking + LaMa)
+# Fase 1 — resultados (SoccerNet-Tracking + LaMa, dataset de-sesgado)
 
-> Primera corrida real del harness de Nivel 1: 42 ítems de SoccerNet-Tracking (split
-> test), enmascarado con **LaMa**, control de fuga, prompt `v0-neutral`, condición de
-> **frame único**. Reproducible: `fase1_build_dataset.py` → `inpaint_lama.py` →
-> `fase1_run.py` → `fase1_report.py`.
+> Harness de Nivel 1 sobre SoccerNet-Tracking (split test), enmascarado **LaMa**,
+> control de fuga, prompt `v0-neutral`, **frame único**. El conjunto está **balanceado
+> por distancia del balón al centro** (14 near / 14 mid / 14 far) para neutralizar el
+> sesgo de la cámara de broadcast (que sigue al balón). Reproducible:
+> `fase1_build_dataset.py --balance center` → `inpaint_lama.py` → `fase1_run.py` →
+> `fase1_report.py`.
 
-## Configuración
+## Por qué de-sesgar (el confound que casi nos engaña)
 
-- **Dataset**: 42 frames estratificados por estado del balón (possession 12,
-  short_pass 12, long_pass 12, contested 6 — la disputa pura es escasa), 1 frame por
-  clip como máximo para diversidad.
-- **Enmascarado**: LaMa (deep inpainting). Borra el balón sin dejar rastro sobre césped,
-  líneas y jugadores (donde Telea sí delataba la posición).
-- **Sistemas**: `center` (0.5,0.5), `centroid` (centroide de jugadores, B1),
-  `gpt` (`gpt-5.4`, Azure), `claude` (`claude-sonnet-4-6`).
+Una primera corrida (estratificada por estado del balón) daba "GPT bate al baseline
+centro". Pero un diagnóstico pareado lo desmontó: GPT ganaba al centro solo en 55% de
+los ítems, y **en balones descentrados nadie batía al centro** — la ventaja venía de que
+la cámara centra el balón, así que "predecir el centro" ya acertaba mucho. Sin controlar
+esto, el titular es un artefacto de la cámara.
 
-## Resultados (error = distancia euclídea normalizada; menor = mejor)
+Solución: construir el conjunto **balanceado por distancia al centro**, de modo que
+"centro" sea mal predictor por diseño (en el tercio `far`, el baseline centro tiene
+error 0.359). Así, ganar al centro en `far` es evidencia real de inferencia.
 
-| Sistema | mediana | media | PCK@.10 | poseedor |
-|---|---|---|---|---|
-| center | 0.199 | 0.210 | 0.17 | 0.19 |
-| centroid (B1) | 0.213 | 0.254 | 0.17 | 0.17 |
-| **gpt-5.4** | **0.151** | 0.222 | **0.40** | **0.31** |
-| claude-sonnet-4-6 | 0.196 | 0.254 | 0.24 | 0.19 |
+## Resultado principal — error por distancia al centro
 
-(Subconjunto sin los 6 ítems marcados por fuga: center 0.199, gpt 0.168, claude 0.196,
-centroid 0.201 — misma lectura.)
+| Sistema | near (n=14) | mid (n=14) | **far / descentrados (n=14)** |
+|---|---|---|---|
+| center | 0.101 | 0.201 | 0.359 |
+| centroid (B1) | 0.159 | 0.201 | 0.450 |
+| **gpt-5.4** | 0.086 | 0.140 | **0.219** |
+| claude-sonnet-4-6 | 0.120 | 0.137 | 0.410 |
 
-### Por estrato (mediana)
+**Win-rate pareado (¿bate al centro ítem a ítem?)**
 
-| Sistema | possession | short_pass | long_pass | contested |
-|---|---|---|---|---|
-| center | 0.266 | 0.196 | 0.195 | 0.076 |
-| gpt | 0.256 | 0.157 | 0.128 | 0.035 |
-| claude | 0.353 | 0.162 | 0.187 | 0.083 |
+| Sistema | global | solo `far` |
+|---|---|---|
+| gpt-5.4 | 23/42 (55%) | **9/14 (64%)** |
+| claude-sonnet-4-6 | 20/42 (48%) | 6/14 (43%) |
+| centroid | 9/42 (21%) | 3/14 (21%) |
 
-## Lectura
+## Lectura (sin confound de cámara)
 
-1. **GPT-5.4 es el único que bate con claridad el baseline "centro"** (0.151 vs 0.199) y
-   domina en PCK@.10 (0.40 vs 0.17) y en acierto de poseedor (0.31 vs 0.19). Confirma
-   H1 en un dataset con cámara realista y balón diminuto.
-2. **Claude Sonnet 4.6 ≈ baseline centro** (0.196 vs 0.199). En esta cámara (más alta y
-   abierta que el broadcast de Fase 0) Claude apenas aporta sobre el baseline trivial.
-   Caveat de gama: `gpt-5.4` es flagship y Sonnet gama media → falta `claude-opus-4-8`.
-3. **El centroide de jugadores (B1) es PEOR que el centro.** El baseline geométrico naíf
-   no sirve: el balón no está en el centroide del equipo. (Adelanta que la geometría útil
-   del Nivel 3 tendrá que ser más fina: Voronoi, pitch control, velocidades.)
-4. **Estratos**: `possession` es el más difícil para todos (juego de construcción, balón
-   lejos del centro y disperso); `contested` el más fácil (acción central congestionada,
-   cámara centrada). Esto **refina H4**: el determinante no es posesión-vs-pase, sino
-   *central-congestionado vs. amplio-disperso*.
+1. **GPT-5.4 tiene intuición real de espectador.** En balones descentrados —donde el
+   centro es inútil (0.359)— GPT baja el error a **0.219** y gana **64%** de los ítems.
+   No es sesgo de cámara: infiere de verdad la posición del balón desde los jugadores.
+2. **Claude Sonnet 4.6 no lo consigue.** En `far` es **peor que el centro** (0.410 vs
+   0.359) y gana solo 43%: ancla cerca del centro/cluster y falla cuando el balón está
+   genuinamente lejos. (Caveat de gama: Sonnet es media; falta `claude-opus-4-8`.)
+3. **El centroide de jugadores (B1) es el peor**, sobre todo en `far` (0.450). La
+   geometría naíf no sirve — el balón no está en el centroide (motiva la geometría fina
+   del Nivel 3).
 
-## Caveats y arreglos para el dataset formal
+Global (mediana): center 0.201 · centroid 0.239 · **gpt 0.117** · claude 0.201.
+PCK@.10: gpt 0.48 vs center 0.17. Acierto de poseedor: gpt 0.40 vs center 0.21.
 
-- **Sesgo de cámara (confound serio).** El baseline "centro" es fuerte porque la cámara
-  principal sigue el balón. Hay que reponderar/seleccionar ítems con balón descentrado, o
-  el ranking queda confundido. Es la limitación nº1 del diseño y aquí se ve cuantificada.
-- **Fuga en balón con motion blur.** El control de fuga marcó **6/42**; al menos uno es
-  un residuo real: en balones rápidos la estela supera el bbox ajustado del GT y LaMa no
-  la cubre. Arreglo: **dilatar la máscara según la velocidad** del balón o excluir frames
-  con blur. Los balones lentos/estáticos quedan perfectos.
-- **Falta la condición temporal (RQ2)** y `claude-opus-4-8` + un VLM abierto (Qwen-VL).
-- Escala: 42 ítems → subir a ~500 estratificados con IC por bootstrap (§7 del diseño).
+### Por estado del balón (metadato)
+
+| Sistema | possession (10) | short_pass (22) | long_pass (10) |
+|---|---|---|---|
+| gpt | 0.389 | 0.096 | 0.119 |
+| claude | 0.318 | 0.201 | 0.157 |
+| center | 0.251 | 0.199 | 0.158 |
+
+`possession` es sorprendentemente el peor estrato para GPT: en este conjunto son en su
+mayoría balones de construcción en banda (lejos del centro y ambiguos desde un frame).
+
+## Arreglos aplicados
+
+- **Sesgo de cámara**: conjunto balanceado por distancia al centro (arriba).
+- **Fuga por motion blur**: la máscara ahora se dilata con la velocidad del balón
+  (`extra_pad_px ∝ speed`); la tasa de fuga bajó de 6/42 → **4/42**.
+
+## Pendiente
+
+- `claude-opus-4-8` (comparación flagship justa) y un VLM abierto (Qwen-VL).
+- **Condición temporal (RQ2)**: ¿mejora la inferencia de balones descentrados al ver la
+  jugada moverse? Es la hipótesis natural tras ver que un frame no basta en `far`.
+- Escalar a ~500 ítems con IC por bootstrap; prompt informado (RQ3).
