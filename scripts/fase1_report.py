@@ -21,6 +21,7 @@ from wheres_the_ball.eval.metrics import euclidean_norm, summarize
 OUT = pathlib.Path("results/fase1")
 SYSTEMS = ["center", "centroid", "gpt", "claude"]
 STRATA = ["possession", "short_pass", "long_pass", "contested"]
+CENTER_BINS = ["near", "mid", "far"]
 PCK = [0.05, 0.10, 0.15]
 
 
@@ -38,6 +39,9 @@ def main() -> None:
     errors = {s: [] for s in SYSTEMS}
     errors_clean = {s: [] for s in SYSTEMS}  # excluding leak-flagged items
     by_stratum = {s: {st: [] for st in STRATA} for s in SYSTEMS}
+    by_center = {s: {cb: [] for cb in CENTER_BINS} for s in SYSTEMS}
+    beats_center = {s: [] for s in SYSTEMS}          # per-item: model err < center err
+    beats_center_far = {s: [] for s in SYSTEMS}      # only off-center (far) items
     possessor_hit = {s: [] for s in SYSTEMS}
     leaked = 0
     rows = []
@@ -49,7 +53,9 @@ def main() -> None:
         is_leak = bool(leak.get("ball_visible") or leak.get("artifact_visible"))
         leaked += is_leak
         gt_poss = nearest_player(gt, it["players"])
-        row = {"id": it["id"], "state": it["state"], "leak": is_leak}
+        cbin = it.get("center_bin", "?")
+        center_err = it.get("center_dist", euclidean_norm((0.5, 0.5), gt))
+        row = {"id": it["id"], "state": it["state"], "center_bin": cbin, "leak": is_leak}
         plot_preds = {}
         for s in SYSTEMS:
             xy = _xy(pr.get(s))
@@ -61,6 +67,12 @@ def main() -> None:
             if not is_leak:
                 errors_clean[s].append(err)
             by_stratum[s][it["state"]].append(err)
+            if cbin in by_center[s]:
+                by_center[s][cbin].append(err)
+            if s != "center":
+                beats_center[s].append(err < center_err)
+                if cbin == "far":
+                    beats_center_far[s].append(err < center_err)
             row[s] = round(err, 4)
             plot_preds[s] = xy
             if gt_poss is not None:
@@ -110,6 +122,27 @@ def main() -> None:
             e = by_stratum[s][st]
             cells.append(f"{summarize(e)['median']:.3f} (n={len(e)})" if e else "—")
         L.append(f"| {s} | " + " | ".join(cells) + " |")
+    L += ["\n## Mediana de error por distancia al centro (de-sesgo cámara)\n",
+          "| Sistema | " + " | ".join(CENTER_BINS) + " |",
+          "|---|" + "---|" * len(CENTER_BINS)]
+    for s in SYSTEMS:
+        cells = []
+        for cb in CENTER_BINS:
+            e = by_center[s][cb]
+            cells.append(f"{summarize(e)['median']:.3f} (n={len(e)})" if e else "—")
+        L.append(f"| {s} | " + " | ".join(cells) + " |")
+
+    L += ["\n## ¿Bate al baseline 'centro' ítem a ítem? (win-rate pareado)\n",
+          "| Sistema | global | solo 'far' (descentrados) |",
+          "|---|---|---|"]
+    for s in SYSTEMS:
+        if s == "center":
+            continue
+        g = beats_center[s]; f = beats_center_far[s]
+        gr = f"{sum(g)}/{len(g)} ({100*sum(g)/len(g):.0f}%)" if g else "—"
+        fr = f"{sum(f)}/{len(f)} ({100*sum(f)/len(f):.0f}%)" if f else "—"
+        L.append(f"| {s} | {gr} | {fr} |")
+
     L.append(f"\nVisualizaciones por ítem en `{viz_dir}/`.")
 
     (OUT / "report.md").write_text("\n".join(L) + "\n")
