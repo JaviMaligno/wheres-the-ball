@@ -41,9 +41,30 @@ Answer with a STRICT JSON object and nothing else:
   "rationale": "<one short sentence>"
 }"""
 
+# Temporal condition (RQ2): a short sequence of consecutive frames (oldest→newest),
+# the ball removed from ALL of them. The model infers the ball in the LAST frame.
+LOCALIZE_TEMPORAL_NEUTRAL = """You are shown a short sequence of consecutive frames \
+from a team sport (about one second apart, earliest first, last frame most recent). \
+The object the players are contesting (the ball) has been removed from EVERY frame and \
+is NOT visible in any of them.
+
+Use how the players move and reorient across the frames to infer where that object is \
+IN THE LAST (most recent) frame.
+
+Answer with a STRICT JSON object and nothing else, with coordinates relative to the \
+LAST frame:
+{
+  "x": <float 0..1, 0=left edge, 1=right edge>,
+  "y": <float 0..1, 0=top edge, 1=bottom edge>,
+  "uncertainty_radius": <float 0..1, fraction of image width>,
+  "confidence": <int 0..100>,
+  "rationale": "<one short sentence: what motion cue led you there>"
+}"""
+
 PROMPTS = {
     "neutral": LOCALIZE_NEUTRAL,
     "informed": LOCALIZE_INFORMED,
+    "temporal": LOCALIZE_TEMPORAL_NEUTRAL,
 }
 
 # Leak control: run on the MASKED image to check the edit left no usable cue.

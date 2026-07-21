@@ -39,15 +39,26 @@ def _image_block(image_path: str) -> dict:
     }
 
 
+def _run(client, model, content) -> str:
+    resp = client.messages.create(
+        model=model, max_tokens=1024,
+        messages=[{"role": "user", "content": content}],
+    )
+    return "".join(b.text for b in resp.content if b.type == "text")
+
+
 def localize(image_path: str, prompt: str, model: str = DEFAULT_MODEL) -> str:
     """Send one masked image + prompt, return Claude's raw text answer."""
     client = _client()
-    resp = client.messages.create(
-        model=model,
-        max_tokens=1024,
-        messages=[{
-            "role": "user",
-            "content": [{"type": "text", "text": prompt}, _image_block(image_path)],
-        }],
-    )
-    return "".join(b.text for b in resp.content if b.type == "text")
+    return _run(client, model, [{"type": "text", "text": prompt}, _image_block(image_path)])
+
+
+def localize_sequence(image_paths: list[str], prompt: str, model: str = DEFAULT_MODEL) -> str:
+    """Send an ordered sequence of masked frames (oldest→newest) + prompt."""
+    client = _client()
+    content = [{"type": "text", "text": prompt}]
+    for i, p in enumerate(image_paths):
+        tag = "LAST frame (most recent)" if i == len(image_paths) - 1 else f"Frame {i+1}"
+        content.append({"type": "text", "text": tag + ":"})
+        content.append(_image_block(p))
+    return _run(client, model, content)

@@ -33,24 +33,33 @@ def _data_url(image_path: str) -> str:
     return f"data:{mime};base64,{b64}"
 
 
-def localize(image_path: str, prompt: str, deployment: str = "gpt-5.4") -> str:
-    """Send one masked image + prompt, return the model's raw text answer."""
-    client = _client()
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": _data_url(image_path)}},
-            ],
-        }
-    ]
-    kwargs = {"model": deployment, "messages": messages}
+def _run(client, deployment, content) -> str:
+    kwargs = {"model": deployment, "messages": [{"role": "user", "content": content}]}
     try:
         resp = client.chat.completions.create(
             response_format={"type": "json_object"}, **kwargs
         )
     except Exception:
-        # Some deployments reject response_format; retry without it.
         resp = client.chat.completions.create(**kwargs)
     return resp.choices[0].message.content or ""
+
+
+def localize(image_path: str, prompt: str, deployment: str = "gpt-5.4") -> str:
+    """Send one masked image + prompt, return the model's raw text answer."""
+    client = _client()
+    content = [
+        {"type": "text", "text": prompt},
+        {"type": "image_url", "image_url": {"url": _data_url(image_path)}},
+    ]
+    return _run(client, deployment, content)
+
+
+def localize_sequence(image_paths: list[str], prompt: str, deployment: str = "gpt-5.4") -> str:
+    """Send an ordered sequence of masked frames (oldest→newest) + prompt."""
+    client = _client()
+    content = [{"type": "text", "text": prompt}]
+    for i, p in enumerate(image_paths):
+        tag = "LAST frame (most recent)" if i == len(image_paths) - 1 else f"Frame {i+1}"
+        content.append({"type": "text", "text": tag + ":"})
+        content.append({"type": "image_url", "image_url": {"url": _data_url(p)}})
+    return _run(client, deployment, content)
