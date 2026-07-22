@@ -1,72 +1,53 @@
-# Fase 1 · RQ2 — ¿ayuda el contexto temporal? (frame único vs. secuencia)
+# Fase 1 · RQ2 — ¿ayuda el contexto temporal? (n=92, autoritativo)
 
-> ⚠️ **Corrección tras auditoría ([`fase-1-auditoria.md`](./fase-1-auditoria.md)).** La
-> "casi-mitad del error en `far`" de abajo compara medianas de GRUPO; la mejora
-> **pareada** real en `far` tiene mediana Δ≈0 (IC incluye 0) para los tres modelos — el
-> temporal ayuda mucho en 2 ítems de 14 y nada en el resto. **No concluir que el temporal
-> desbloquea los balones descentrados** sin escalar la muestra.
-
-> Comparación **pareada** sobre los mismos 42 ítems del conjunto de-sesgado por
-> distancia al centro. Condición temporal = secuencia de 4 frames (t-75/-50/-25/t, ~1s
-> aparte), con el balón **borrado por LaMa en todos** (nunca visible). Prompt
-> `temporal`; mismos modelos. Reproducible: `fase1_build_temporal.py` →
-> `inpaint_lama.py --root results/fase1/clips` → `fase1_run_temporal.py` →
-> `fase1_report_temporal.py`. Pareados: n=39 (3 ítems con <2 frames de historia).
-
-## Hipótesis
-
-Tras ver que un frame único no basta en balones descentrados (`far`), la pregunta: si el
-modelo ve la **jugada moverse** (jugadores reorientándose, corriendo hacia el balón),
-¿infiere mejor un balón que en estático era ambiguo? Es lo que hace un espectador.
+> Comparación **pareada** single-frame vs secuencia de 4 frames (t-75/-50/-25/t, ~1s
+> aparte), con el balón borrado por LaMa en **todos** los frames. Muestra de-sesgada por
+> distancia al centro, n=92 (87 con ≥2 frames de historia). Métrica primaria:
+> **correlación pred↔GT** (bien alimentada); en `far`, mejora **pareada** con IC
+> bootstrap. Reproducible: `fase1_build_temporal.py` → `inpaint_lama.py --root
+> results/fase1/clips` → `fase1_run_temporal.py` (+ opus) → `audit_fase1.py`.
+>
+> ⚠️ Esto **reemplaza** un análisis previo a n=42 que estaba mal concluido (la "casi-mitad
+> del error en far" era artefacto de medianas de grupo, movido por 2 ítems). Ver
+> [`fase-1-auditoria.md`](./fase-1-auditoria.md).
 
 ## Resultado
 
-### Balones descentrados (`far`) — donde un frame fallaba
+**Correlación pred↔GT (single → temporal):**
 
-| Modelo | single | temporal | baseline centro |
-|---|---|---|---|
-| **gpt-5.4** | 0.219 | **0.124** | 0.359 |
-| claude-opus-4-8 | 0.311 | 0.352 | 0.359 |
-| claude-sonnet-4-6 | 0.410 | 0.401 | 0.359 |
+| Modelo | corr_x | corr_y |
+|---|---|---|
+| GPT-5.4 | 0.26 → **0.47** | 0.17 → **0.31** |
+| Claude Opus 4.8 | 0.37 → 0.34 | 0.34 → **0.20** |
+| Claude Sonnet 4.6 | −0.01 → 0.12 | 0.09 → 0.08 |
 
-### Global y por distancia al centro (mediana; single → temporal)
+**Mejora pareada en `far` (descentrados, n=38); Δ = error_single − error_temporal, >0 = temporal mejora:**
 
-| Modelo | global | near | mid | far |
-|---|---|---|---|---|
-| gpt-5.4 | 0.117 → **0.089** | 0.086 → 0.086 | 0.140 → 0.177 | 0.219 → **0.124** |
-| claude-opus-4-8 | 0.209 → 0.170 | 0.087 → 0.102 | 0.225 → **0.138** | 0.311 → 0.352 |
-| claude-sonnet-4-6 | 0.201 → 0.254 | 0.120 → 0.185 | 0.137 → 0.252 | 0.410 → 0.401 |
+| Modelo | median Δ [IC95%] |
+|---|---|
+| GPT-5.4 | +0.022 [−0.003, +0.047] (borderline positivo) |
+| Claude Sonnet 4.6 | −0.001 [−0.010, +0.047] (nulo) |
+| Claude Opus 4.8 | −0.005 [−0.020, +0.002] (nulo/negativo) |
 
 ## Lectura
 
-1. **En GPT-5.4 el contexto temporal casi halva el error en balones descentrados**
-   (0.219 → 0.124) y baja el global (0.117 → 0.089). El efecto se concentra donde la
-   hipótesis predecía: en `near` no cambia (ya era fácil), y en `far` —el caso ambiguo
-   en estático— es donde el movimiento aporta. Es el comportamiento de un espectador:
-   ver la jugada desplazarse resuelve la ambigüedad de un fotograma. GPT-temporal en
-   `far` (0.124) pulveriza el baseline centro (0.359).
-2. **En Claude Opus 4.8 el temporal ayuda, pero en otro sitio** (global 0.209 → 0.170;
-   mejora en 49% de ítems). El beneficio está en el rango **medio** (`mid` 0.225 →
-   0.138), no en `far` (0.311 → 0.352, incluso peor). Es decir, el flagship de Anthropic
-   sí aprovecha el movimiento, pero no logra convertirlo en inferencia de los balones más
-   descentrados —justo donde GPT sí lo hace.
-3. **En Claude Sonnet 4.6 el temporal no ayuda —incluso empeora** (global 0.201 →
-   0.254; `near`/`mid` peores; `far` sin cambio y aún peor que el centro). No convierte
-   la secuencia en mejor inferencia; posiblemente se confunde con múltiples imágenes o
-   sigue anclando central.
+1. **GPT-5.4 sí aprovecha el contexto temporal.** La correlación con el GT sube en ambos
+   ejes (x 0.26→0.47, y 0.17→0.31) y en balones descentrados mejora al borde de la
+   significancia (Δ +0.022, IC casi excluye 0). El "efecto espectador" —ver la jugada
+   moverse ayuda— **aguanta a escala** para GPT (a diferencia del falso positivo de n=42,
+   ahora es la correlación bien alimentada la que lo sostiene).
+2. **Opus 4.8 NO lo aprovecha, incluso empeora** (corr_y 0.34→0.20; far Δ negativo).
+   Resultado llamativo: el mejor modelo en **imagen única** es el **peor usando la
+   secuencia** — quizá su prior de un frame ya es bueno y las 4 imágenes le añaden ruido.
+3. **Sonnet 4.6: apenas** (corr_x sube a 0.12 pero sigue débil; far nulo).
 
-**Conclusión.** RQ2 confirmado, pero con perfiles **específicos de cada modelo**:
-GPT-5.4 usa el movimiento *justo* donde el frame estático es ambiguo (`far`, casi lo
-halva) — el espectador de libro; Opus 4.8 lo aprovecha en el rango medio pero no en los
-balones más descentrados; Sonnet 4.6 no lo aprovecha en absoluto. Refuerza la brecha de
-Fase 1: solo GPT-5.4 convierte el contexto temporal en inferencia de los balones difíciles.
+**Síntesis:** el beneficio del temporal es **específico de modelo y no monotónico con la
+capacidad en imagen única**. GPT gana; Opus (el mejor en estático) pierde; Sonnet casi
+nada. Es un hallazgo más interesante que un simple "el temporal ayuda".
 
 ## Caveats
 
-- n=14 por bin (señal cualitativa; el ligero empeoramiento de GPT en `mid` es
-  probablemente ruido). Escalar a ~500 con IC bootstrap.
-- La ordenación/etiquetado de las 4 imágenes podría afectar a Claude; convendría un
-  ablation (orden inverso, nº de frames). (`claude-opus-4-8` ya incluido.)
-- Opus tuvo algún error 500/529 transitorio de la API: single n=39, temporal n=38.
-- Frames de historia con el balón sin anotar llevan máscara vacía (posible balón visible
-  en algún frame previo); es raro y no afecta al frame objetivo.
+- `far` n=38 (limitado por la cámara); el Δ de GPT es borderline. La señal fuerte y
+  robusta es la correlación (n≈87).
+- Falta ablation del temporal (nº de frames, orden inverso) para descartar que a Opus le
+  perjudique el formato multi-imagen más que el contenido temporal.
