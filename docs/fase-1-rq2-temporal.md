@@ -49,5 +49,11 @@ nada. Es un hallazgo más interesante que un simple "el temporal ayuda".
 
 - `far` n=38 (limitado por la cámara); el Δ de GPT es borderline. La señal fuerte y
   robusta es la correlación (n≈87).
-- Falta ablation del temporal (nº de frames, orden inverso) para descartar que a Opus le
-  perjudique el formato multi-imagen más que el contenido temporal.
+
+## Mecanismo (ablation posterior)
+
+El ablation ordenado-vs-desordenado-vs-formato
+([`fase-1-ablation-temporal.md`](./fase-1-ablation-temporal.md)) mostró que **ningún
+modelo usa el movimiento** (el orden de los frames es exactamente irrelevante): el
+"efecto temporal" es un efecto **multi-vista** — a GPT le ayudan las vistas extra en
+cualquier orden, a Opus le diluyen la lectura del frame objetivo.
