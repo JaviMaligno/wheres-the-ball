@@ -153,7 +153,28 @@ def main():
         if en:
             print(f"  {s:12} n={len(en)} med={np.median(en):.3f}")
 
-    # ---- temporal: GPT far improvement, paired, with CI on the paired delta ----
+    if not temporal:
+        print("\n(no hay predictions_temporal.json — omitiendo sección temporal)")
+        return
+
+    # ---- temporal: correlation single vs temporal (all items) ----
+    print("\n=== Temporal: correlación pred–GT single → temporal (todos los ítems) ===")
+    for s in ["gpt", "claude", "claude_opus"]:
+        def corrs(src):
+            P, G = [], []
+            for iid in man:
+                p = xy(src.get(iid, {}).get(s))
+                if p:
+                    P.append(p); G.append((man[iid]["gt"]["x"], man[iid]["gt"]["y"]))
+            if len(P) < 5:
+                return None
+            P, G = np.array(P), np.array(G)
+            return (np.corrcoef(P[:, 0], G[:, 0])[0, 1], np.corrcoef(P[:, 1], G[:, 1])[0, 1])
+        cs, ct = corrs(single), corrs(temporal)
+        if cs and ct:
+            print(f"  {s:12} corr_x {cs[0]:+.2f}→{ct[0]:+.2f}   corr_y {cs[1]:+.2f}→{ct[1]:+.2f}")
+
+    # ---- temporal: paired improvement on FAR, with CI on the paired delta ----
     print("\n=== Temporal en FAR: mejora pareada (single - temporal) por modelo ===")
     for s in ["gpt", "claude", "claude_opus"]:
         deltas = []
