@@ -119,3 +119,30 @@ fig.tight_layout()
 fig.savefig(OUT / "wheres-the-ball-multiview.png", bbox_inches="tight")
 plt.close(fig)
 print("wrote wheres-the-ball-multiview.png")
+
+
+# ---- Fig 4: informed prompt — neutral vs informed (mean correlation), slope chart ----
+def mean_corr(key):
+    return (corr_ci(single, key, 0)[0] + corr_ci(single, key, 1)[0]) / 2
+
+
+rows = [("gpt", "gpt_informed", "GPT-5.4", TEAL),
+        ("claude_opus", "claude_opus_informed", "Claude Opus 4.8", AMBER),
+        ("claude", "claude_informed", "Claude Sonnet 4.6", GRAPHITE)]
+fig, ax = plt.subplots(figsize=(7.6, 4.8))
+for base, inf, lbl, c in rows:
+    n, i = mean_corr(base), mean_corr(inf)
+    ax.plot([0, 1], [n, i], "-o", color=c, lw=2.6, ms=10)
+    ax.annotate(f"{lbl}", (1, i), xytext=(8, 0), textcoords="offset points",
+                va="center", fontsize=11, color=c, fontweight="bold")
+    ax.annotate(f"{n:.2f}", (0, n), xytext=(-8, 0), textcoords="offset points",
+                va="center", ha="right", fontsize=10, color=c)
+ax.set_xlim(-0.15, 1.65)
+ax.set_xticks([0, 1]); ax.set_xticklabels(["neutral prompt", "informed prompt\n(names sport + tactics)"])
+ax.set_ylabel("Mean correlation with true ball position")
+ax.set_title("Does telling the model the rules help?\nOnly the model with room to grow (GPT)")
+ax.axhline(0, color="#333", lw=0.8)
+fig.tight_layout()
+fig.savefig(OUT / "wheres-the-ball-informed.png", bbox_inches="tight")
+plt.close(fig)
+print("wrote wheres-the-ball-informed.png")
