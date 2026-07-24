@@ -29,22 +29,35 @@ def binom_err(k, n):
     return 1.96 * math.sqrt(p * (1 - p) / n) * 100
 
 
-# ---- F1: far win-rate vs center ----
-fig, ax = plt.subplots(figsize=(8.0, 4.6))
-rows = [("Tiny tracker-fed net\n(~60 kB, laptop)", 28, 34, TEAL),
-        ("GPT-5.4", 18, 34, GRAPHITE), ("Claude Opus 4.8", 18, 34, GRAPHITE),
-        ("Claude Sonnet 4.6", 13, 34, GRAPHITE)]
-for i, (lbl, k, n, c) in enumerate(rows):
-    ax.bar(i, k / n * 100, 0.55, yerr=binom_err(k, n), capsize=5, color=c,
-           edgecolor="white", error_kw={"ecolor": "#333", "lw": 1.3})
-    ax.text(i, k / n * 100 + binom_err(k, n) + 2.5, f"{k/n:.0%}", ha="center",
-            fontsize=12, fontweight="bold")
+# ---- F1: far win-rate vs center, grouped by INPUT (the honest 2x2-ish view) ----
+fig, ax = plt.subplots(figsize=(9.2, 4.8))
+groups = [
+    ("given the player TRACKS", [("Tiny net\n(trained)", 28, 34, TEAL),
+                                 ("GPT-5.4", 12, 34, AMBER),
+                                 ("Opus 4.8", 13, 34, AMBER)]),
+    ("given the PIXELS", [("GPT-5.4", 18, 34, GRAPHITE),
+                          ("Opus 4.8", 18, 34, GRAPHITE),
+                          ("Sonnet 4.6", 13, 34, GRAPHITE)]),
+]
+xpos, xticks, xlabels = 0.0, [], []
+for gname, rows in groups:
+    start = xpos
+    for lbl, k, n, c in rows:
+        ax.bar(xpos, k / n * 100, 0.7, yerr=binom_err(k, n), capsize=4, color=c,
+               edgecolor="white", error_kw={"ecolor": "#333", "lw": 1.2})
+        ax.text(xpos, k / n * 100 + binom_err(k, n) + 2.5, f"{k/n:.0%}", ha="center",
+                fontsize=11, fontweight="bold")
+        xticks.append(xpos); xlabels.append(lbl)
+        xpos += 1.0
+    ax.text((start + xpos - 1) / 2, -32, gname, ha="center", fontsize=11,
+            fontweight="bold", color="#333")
+    xpos += 0.6
 ax.axhline(50, color=RED, ls="--", lw=1.6)
-ax.text(3.42, 52, "chance", color=RED, fontsize=10, ha="right")
-ax.set_xticks(range(len(rows))); ax.set_xticklabels([r[0] for r in rows], fontsize=10)
+ax.text(xpos - 0.7, 52, "chance", color=RED, fontsize=10, ha="right")
+ax.set_xticks(xticks); ax.set_xticklabels(xlabels, fontsize=9)
 ax.set_ylabel("Beats the camera bias on\noff-center balls (%)")
-ax.set_ylim(0, 100)
-ax.set_title("Same hidden-ball benchmark, same hard items (n=34)")
+ax.set_ylim(0, 108); ax.set_yticks([0, 20, 40, 60, 80, 100])
+ax.set_title("Same hidden-ball items (n=34), two kinds of input")
 fig.tight_layout(); fig.savefig(OUT / "wtb2-david-goliath.png", bbox_inches="tight"); plt.close(fig)
 print("wrote wtb2-david-goliath.png")
 
@@ -77,6 +90,7 @@ for i, g in enumerate(groups):
     ax.text(i + w/2, g[2] + .008, f"{g[2]:.2f}", ha="center", color="#555")
 ax.set_xticks(x); ax.set_xticklabels([g[0] for g in groups])
 ax.set_ylabel("Median error (field fractions, lower = better)")
+ax.set_ylim(0, 0.40)
 ax.set_title("Zero-shot transfer is asymmetric\n(and it's not the amount of data — controlled)")
 ax.legend(framealpha=0.9)
 fig.tight_layout(); fig.savefig(OUT / "wtb2-asymmetry.png", bbox_inches="tight"); plt.close(fig)

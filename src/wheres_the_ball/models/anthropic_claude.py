@@ -62,3 +62,9 @@ def localize_sequence(image_paths: list[str], prompt: str, model: str = DEFAULT_
         content.append({"type": "text", "text": tag + ":"})
         content.append(_image_block(p))
     return _run(client, model, content)
+
+
+def localize_text(prompt: str, model: str = DEFAULT_MODEL) -> str:
+    """Text-only variant (tracking data serialized in the prompt, no image)."""
+    client = _client()
+    return _run(client, model, [{"type": "text", "text": prompt}])

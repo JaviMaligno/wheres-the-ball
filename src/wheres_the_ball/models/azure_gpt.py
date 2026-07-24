@@ -63,3 +63,9 @@ def localize_sequence(image_paths: list[str], prompt: str, deployment: str = "gp
         content.append({"type": "text", "text": tag + ":"})
         content.append({"type": "image_url", "image_url": {"url": _data_url(p)}})
     return _run(client, deployment, content)
+
+
+def localize_text(prompt: str, deployment: str = "gpt-5.4") -> str:
+    """Text-only variant (tracking data serialized in the prompt, no image)."""
+    client = _client()
+    return _run(client, deployment, [{"type": "text", "text": prompt}])
