@@ -131,9 +131,25 @@ def train_eval(epochs: int = 8):
     return preds
 
 
+@app.function(volumes={"/data": vol}, timeout=9000)
+def pipeline(epochs: int = 8):
+    """Cloud-side orchestrator: mask -> train -> save preds to the volume.
+    Launch with `modal run --detach` so it survives the laptop sleeping."""
+    n = mask_frames.remote()
+    print(f"pipeline: {n} frames masked")
+    preds = train_eval.remote(epochs=epochs)
+    pathlib.Path("/data/cnn_preds.json").write_text(json.dumps(preds, indent=2))
+    vol.commit()
+    print(f"pipeline: saved {len(preds)} eval predictions to /data/cnn_preds.json")
+    return len(preds)
+
+
 @app.local_entrypoint()
 def main(step: str = "train", epochs: int = 8):
-    if step == "mask":
+    if step == "pipeline":
+        n = pipeline.remote(epochs=epochs)
+        print(f"pipeline done: {n} predictions in volume (download with modal volume get)")
+    elif step == "mask":
         n = mask_frames.remote()
         print(f"masked frames in volume: {n}")
     else:
