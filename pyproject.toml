@@ -19,6 +19,8 @@ dependencies = [
     "python-dotenv>=1.0",
     "pydantic>=2.7",
     "scikit-learn>=1.5",
+    "modal>=1.0",
+    "cbor2<6",
 ]
 
 # Deep inpainting fallback (LaMa): if OpenCV inpainting is not coherent enough, install
