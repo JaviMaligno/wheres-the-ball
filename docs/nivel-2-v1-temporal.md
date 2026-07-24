@@ -41,6 +41,35 @@ en 30 min la mejora es consistente semilla a semilla (0.198<0.200, 0.209<0.229,
    trayectoria (el orden no importaba) — aquí la dinámica sí aporta, pero como
    *representación aprendida*, no como lectura explícita del movimiento.
 
+## Control de warm-start (¿transfer genuino o solo un init entrenado?)
+
+Explicación alternativa: el input de 21 dims es más difícil de optimizar desde cero con
+pocas muestras, y *cualquier* init entrenado ayudaría. Control: pre-entrenar la misma
+arquitectura en fútbol con **targets permutados** (misma distribución de entrada,
+mapping destruido) y repetir el few-shot (`scripts/nivel2_control_warmstart.py`):
+
+| Presupuesto | fútbol | permutado | scratch |
+|---|---|---|---|
+| 1 min | **0.260** | 0.273 | 0.279 |
+| 5 min | **0.233** | 0.235 | 0.236 |
+| 30 min | **0.201** | 0.210 | 0.216 |
+
+El init permutado queda entre medias: **~1/3 de la ventaja era warm-start genérico,
+pero el pre-entreno real bate al control en los tres presupuestos** → existe componente
+deporte-general genuino (~2/3 de la ventaja), aunque modesto.
+
+## ¿Contradice esto el "nadie lee el movimiento" del Nivel 1? No — son dos cosas
+
+- **Nivel 1** (VLMs congelados, inferencia, píxeles): ¿puede un VLM *leer* el movimiento
+  de una secuencia de imágenes? No — el orden era irrelevante; solo usan vistas extra.
+- **Nivel 2** (especialista, entrenamiento, coordenadas de campo): ¿la señal dinámica
+  existe y lo *aprendido* de ella se reutiliza entre deportes? Sí (con el control de
+  arriba).
+
+Encajan: **el balón está escrito en la dinámica colectiva (N2), pero los VLMs actuales
+no saben extraerla de píxeles (N1)** — el v1 identifica exactamente la señal que los
+VLMs desaprovechan.
+
 ## Caveats
 
 - Magnitudes modestas (~4-8% sobre scratch) con 3 semillas; dirección consistente en
