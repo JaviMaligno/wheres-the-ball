@@ -89,3 +89,75 @@ def load_sportvu_game(json_path: str | pathlib.Path, stride: int = 5):
             if len(players) >= 8:
                 yield (np.array(players, dtype=np.float32),
                        np.array([ball_now[2] / COURT_X, ball_now[3] / COURT_Y], np.float32))
+
+
+# ---------- trajectory (temporal window) variants for the v1 specialist ----------
+T_STEPS = 5  # steps per window, spaced VEL_LAG frames apart → 1 s at 25 Hz
+
+
+def _traj_feature(xy_steps, dt):
+    """[T,2] positions → flat [x,y,vx,vy]×T (velocity via backward difference)."""
+    out = []
+    for k in range(len(xy_steps)):
+        x, y = xy_steps[k]
+        px, py = xy_steps[k - 1] if k > 0 else xy_steps[k]
+        out += [x, y, (x - px) / dt, (y - py) / dt]
+    return out
+
+
+def load_metrica_trajectories(game_dir, stride: int = 5):
+    """Yield (players[N, 4*T+1], ball[2]) — per-player 1 s trajectories."""
+    import csv as _csv
+    game_dir = pathlib.Path(game_dir)
+    name = game_dir.name
+    sides = {}
+    for side in ("Home", "Away"):
+        rows = list(_csv.reader((game_dir / f"{name}_RawTrackingData_{side}_Team.csv").open()))
+        sides[side] = np.array([[float(c) if c not in ("", "NaN") else np.nan for c in r[3:]]
+                                for r in rows[3:]])
+    n = min(len(sides["Home"]), len(sides["Away"]))
+    home, away = sides["Home"][:n], sides["Away"][:n]
+    ball = home[:, -2:]
+    dt = VEL_LAG / FPS
+    span = VEL_LAG * (T_STEPS - 1)
+    for i in range(span, n, stride):
+        if np.isnan(ball[i]).any():
+            continue
+        players = []
+        for arr, flag in ((home[:, :-2], 1.0), (away[:, :-2], -1.0)):
+            for j in range(0, arr.shape[1], 2):
+                steps = [arr[i - span + k * VEL_LAG, j:j+2] for k in range(T_STEPS)]
+                if any(np.isnan(s).any() for s in steps):
+                    continue
+                players.append(_traj_feature(steps, dt) + [flag])
+        if len(players) >= 8:
+            yield np.array(players, dtype=np.float32), ball[i].astype(np.float32)
+
+
+def load_sportvu_trajectories(json_path, stride: int = 5):
+    """Yield (players[N, 4*T+1], ball[2]) from SportVU, per-event windows."""
+    d = json.loads(pathlib.Path(json_path).read_text())
+    dt = VEL_LAG / FPS
+    span = VEL_LAG * (T_STEPS - 1)
+    team_flags: dict[int, float] = {}
+    for ev in d["events"]:
+        mom = ev["moments"]
+        maps = [{e[1]: (e[2] / COURT_X, e[3] / COURT_Y) for e in m[5] if e[0] != -1}
+                for m in mom]
+        balls = [next((e for e in m[5] if e[0] == -1), None) for m in mom]
+        teams = [{e[1]: e[0] for e in m[5] if e[0] != -1} for m in mom]
+        for i in range(span, len(mom), stride):
+            if balls[i] is None:
+                continue
+            idxs = [i - span + k * VEL_LAG for k in range(T_STEPS)]
+            players = []
+            for pid, team in teams[i].items():
+                if not all(pid in maps[j] for j in idxs):
+                    continue
+                if team not in team_flags:
+                    team_flags[team] = 1.0 if len(team_flags) == 0 else -1.0
+                steps = [np.array(maps[j][pid]) for j in idxs]
+                players.append(_traj_feature(steps, dt) + [team_flags[team]])
+            if len(players) >= 8:
+                yield (np.array(players, dtype=np.float32),
+                       np.array([balls[i][2] / COURT_X, balls[i][3] / COURT_Y], np.float32))
