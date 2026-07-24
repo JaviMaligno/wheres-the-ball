@@ -58,6 +58,27 @@ El init permutado queda entre medias: **~1/3 de la ventaja era warm-start genér
 pero el pre-entreno real bate al control en los tres presupuestos** → existe componente
 deporte-general genuino (~2/3 de la ventaja), aunque modesto.
 
+## Consolidación (4 partidos fuente, 2 partidos eval, 5 semillas)
+
+Re-ejecución a mayor escala (`scripts/nivel2_consolidate.py`: fuente = 2 Metrica + 2
+SkillCorner, 75.8k muestras; eval = 2 partidos SportVU, 80.6k; pool few-shot = 4
+partidos; 5 semillas):
+
+| Presupuesto | fútbol | permutado | scratch |
+|---|---|---|---|
+| 1 min | **0.282** | 0.288 | 0.288 |
+| 5 min | 0.246 | **0.240** | 0.247 |
+| 30 min | **0.218** | 0.228 | 0.234 |
+
+(zero-shot 0.347 · full pool 4 partidos 0.158)
+
+**Lectura consolidada (la definitiva):** la ventaja del init futbolero **aguanta a
+30 min** (4/5 semillas baten tanto al permutado como al scratch), pero a presupuestos
+bajos las tres condiciones quedan dentro del ruido (a 5 min "gana" el permutado). El
+transfer genuino de dinámica **existe pero es pequeño (~4-7%) y solo emerge con
+suficiente calibración en el deporte destino**. Ni "no transfiere nada" (v0) ni "la
+dinámica transfiere" a secas: transfiere un poco, tarde, y sobrevive al control.
+
 ## ¿Contradice esto el "nadie lee el movimiento" del Nivel 1? No — son dos cosas
 
 - **Nivel 1** (VLMs congelados, inferencia, píxeles): ¿puede un VLM *leer* el movimiento

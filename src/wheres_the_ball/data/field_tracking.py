@@ -161,3 +161,52 @@ def load_sportvu_trajectories(json_path, stride: int = 5):
             if len(players) >= 8:
                 yield (np.array(players, dtype=np.float32),
                        np.array([balls[i][2] / COURT_X, balls[i][3] / COURT_Y], np.float32))
+
+
+def load_skillcorner_trajectories(match_dir, stride: int = 2):
+    """Yield (players[N, 4*T+1], ball[2]) from SkillCorner opendata (10 fps).
+
+    Coordinates are meters centered at (0,0); normalized by pitch dims from
+    match.json. Team flag resolved via match.json players list. Steps are 0.2 s
+    apart (lag=2 at 10 fps), matching the Metrica/SportVU temporal geometry.
+    """
+    match_dir = pathlib.Path(match_dir)
+    mid = match_dir.name
+    meta = json.loads((match_dir / f"{mid}_match.json").read_text())
+    L, W = float(meta.get("pitch_length", 105)), float(meta.get("pitch_width", 68))
+    home_id = meta["home_team"]["id"]
+    team_of = {p["id"]: (1.0 if p["team_id"] == home_id else -1.0)
+               for p in meta.get("players", [])}
+    lag, fps = 2, 10.0
+    dt = lag / fps
+    span = lag * (T_STEPS - 1)
+    hist: list[tuple[dict, tuple[float, float]]] = []  # (pid->xy, ball)
+    kept = 0
+    with (match_dir / f"{mid}_tracking_extrapolated.jsonl").open() as f:
+        for line in f:
+            r = json.loads(line)
+            bd = r.get("ball_data") or {}
+            if bd.get("x") is None:
+                hist.clear()
+                continue
+            pmap = {p["player_id"]: (p["x"] / L + 0.5, p["y"] / W + 0.5)
+                    for p in (r.get("player_data") or [])
+                    if p and p.get("x") is not None}
+            ball = (bd["x"] / L + 0.5, bd["y"] / W + 0.5)
+            hist.append((pmap, ball))
+            if len(hist) < span + 1:
+                continue
+            kept += 1
+            if kept % stride:
+                continue
+            idxs = [len(hist) - 1 - span + k * lag for k in range(T_STEPS)]
+            players = []
+            for pid in hist[-1][0]:
+                if not all(pid in hist[j][0] for j in idxs):
+                    continue
+                steps = [np.array(hist[j][0][pid]) for j in idxs]
+                players.append(_traj_feature(steps, dt) + [team_of.get(pid, 0.0)])
+            if len(players) >= 8:
+                yield np.array(players, dtype=np.float32), np.array(hist[-1][1], np.float32)
+            if len(hist) > span + 2:
+                hist.pop(0)
