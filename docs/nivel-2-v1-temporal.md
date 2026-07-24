@@ -1,5 +1,11 @@
 # Nivel 2 · v1 temporal — lo que transfiere es la dinámica (y solo como prior)
 
+> ⚠️ **Corregido por la ablación RQ2 ([`nivel-2-rq2-ablation.md`](./nivel-2-rq2-ablation.md)):**
+> con pre-entreno igualado y eval de 2 partidos, el snapshot v0 TAMBIÉN muestra ventaja
+> de fine-tune — el contraste v0/v1 de abajo no replica. Lo transferible no es la
+> profundidad temporal sino el **uso de las features de velocidad**. Este doc se
+> conserva como registro del camino.
+
 > Ejecutado 2026-07-24, ~$0. Reproducible: `scripts/nivel2_v1_temporal.py`. Misma
 > batería que v0/few-shot para comparación directa: cada jugador pasa de un estado
 > instantáneo (x,y,vx,vy) a una **trayectoria de 1 s** (5 pasos × x,y,vx,vy = 21 dims);
