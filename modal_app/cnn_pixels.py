@@ -38,18 +38,27 @@ train_image = (
 
 @app.function(image=lama_image, gpu="A10G", volumes={"/data": vol}, timeout=5400)
 def mask_frames():
+    import shutil
     import subprocess
-    out = pathlib.Path("/data/cnn_train/masked")
-    out.mkdir(parents=True, exist_ok=True)
-    done = {p.stem for p in out.glob("*")}
-    total = len(list(pathlib.Path("/data/cnn_train/original").glob("*.jpg")))
-    print(f"masking {total} frames ({len(done)} already done)…")
+    # Volume I/O is FUSE (slow per-file): copy to container-local disk, process
+    # there at full speed, then copy results back and commit once.
+    print("copying inputs to local disk…")
+    shutil.copytree("/data/cnn_train/original", "/tmp/original")
+    shutil.copytree("/data/cnn_train/masks", "/tmp/masks")
+    total = len(list(pathlib.Path("/tmp/original").glob("*.jpg")))
+    print(f"masking {total} frames on local disk…")
     subprocess.run(
         ["iopaint", "run", "--model", "lama", "--device", "cuda",
-         "--image", "/data/cnn_train/original", "--mask", "/data/cnn_train/masks",
-         "--output", str(out)], check=True)
+         "--image", "/tmp/original", "--mask", "/tmp/masks",
+         "--output", "/tmp/masked"], check=True)
+    n = len(list(pathlib.Path("/tmp/masked").glob("*")))
+    print(f"copying {n} masked frames back to the volume…")
+    out = pathlib.Path("/data/cnn_train/masked")
+    if out.exists():
+        shutil.rmtree(out)
+    shutil.copytree("/tmp/masked", out)
     vol.commit()
-    return len(list(out.glob("*")))
+    return n
 
 
 @app.function(image=train_image, gpu="A10G", volumes={"/data": vol}, timeout=5400)
