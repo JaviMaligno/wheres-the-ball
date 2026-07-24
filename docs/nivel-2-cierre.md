@@ -39,8 +39,11 @@ Nivel 1. Comparación **pareada** (mismos 75 ítems con 1 s de historia; far n=3
 | centro | 0.205 | — | — | 0.360 | — |
 
 **La frase que resume el proyecto:** los tracks de los jugadores contienen información
-suficiente para resolver los balones descentrados (82% de victorias donde los VLMs se
-quedan en ~53%, el azar), y los VLMs apenas extraen nada de ella desde píxeles. Su mejor
+suficiente para resolver los balones descentrados (82% de victorias vs el centro, donde
+los VLMs se quedan en ~53%, el azar), y los VLMs apenas extraen nada de ella desde
+píxeles. (Matiz de la auditoría: el head-to-head ítem a ítem vs GPT/Opus es 59-62%,
+favorable pero no significativo a n=34 — la afirmación fuerte es contra el sesgo de
+cámara, no contra los VLMs uno a uno; ver `nivel-2-auditoria.md`.) Su mejor
 mediana global (0.147 vs 0.195) viene de precisión pixel en los ítems fáciles centrados
 (el prior de la cámara), no de leer a los jugadores.
 
