@@ -147,8 +147,9 @@ def pipeline(epochs: int = 8):
 @app.local_entrypoint()
 def main(step: str = "train", epochs: int = 8):
     if step == "pipeline":
-        n = pipeline.remote(epochs=epochs)
-        print(f"pipeline done: {n} predictions in volume (download with modal volume get)")
+        call = pipeline.spawn(epochs=epochs)
+        print(f"pipeline SPAWNED (detached from this client): {call.object_id}")
+        print("results will land in the volume as /cnn_preds.json")
     elif step == "mask":
         n = mask_frames.remote()
         print(f"masked frames in volume: {n}")
