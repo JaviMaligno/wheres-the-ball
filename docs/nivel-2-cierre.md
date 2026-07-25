@@ -64,3 +64,20 @@ mediana global (0.147 vs 0.195) viene de precisión pixel en los ítems fáciles
 
 Material listo para el paper de workshop: matriz completa 2×2, tres controles
 (permutado, ablación, pareado), asimetría de transfer y techo vs VLMs.
+
+## Post-scriptum (2026-07-25): el cuadro {entrenado × input} completo
+
+Instado por la revisión de Javier, se completaron las celdas que faltaban
+(`nivel1_vlm_tracks.py` y `modal_app/cnn_pixels.py` — ResNet-18 sobre 7k frames
+enmascarados con LaMa, entrenada en Modal). Far win-rate vs centro (n=34 pareado):
+
+| | tracks | píxeles |
+|---|---|---|
+| **entrenado** | red diminuta **82%** (corr +0.62/+0.49) | CNN pequeña **74%** (corr +0.45/+0.49) |
+| **zero-shot frontera** | GPT 35% · Opus 38% (corr ~0/negativa) | GPT 53% · Opus 53% |
+
+**Conclusión final del cuadro: el entrenamiento importa, el input apenas.** Ni la
+información falta (columna tracks) ni la percepción es el muro (celda CNN-píxeles);
+los generalistas zero-shot fallan con ambos inputs — y peor con coordenadas (caen en
+la trampa del centroide). El conocimiento general del juego no sustituye a la
+inferencia específica de la tarea.

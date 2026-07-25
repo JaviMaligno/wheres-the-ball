@@ -33,12 +33,14 @@ def binom_err(k, n):
 fig, ax = plt.subplots(figsize=(9.2, 4.8))
 groups = [
     ("given the player TRACKS", [("Tiny net\n(trained)", 28, 34, TEAL),
-                                 ("GPT-5.4", 12, 34, AMBER),
-                                 ("Opus 4.8", 13, 34, AMBER)]),
-    ("given the PIXELS", [("GPT-5.4", 18, 34, GRAPHITE),
+                                 ("GPT-5.4", 12, 34, GRAPHITE),
+                                 ("Opus 4.8", 13, 34, GRAPHITE)]),
+    ("given the PIXELS", [("Small CNN\n(trained)", 25, 34, TEAL),
+                          ("GPT-5.4", 18, 34, GRAPHITE),
                           ("Opus 4.8", 18, 34, GRAPHITE),
                           ("Sonnet 4.6", 13, 34, GRAPHITE)]),
 ]
+import matplotlib.patches as mpatches
 xpos, xticks, xlabels = 0.0, [], []
 for gname, rows in groups:
     start = xpos
@@ -57,7 +59,10 @@ ax.text(xpos - 0.7, 52, "chance", color=RED, fontsize=10, ha="right")
 ax.set_xticks(xticks); ax.set_xticklabels(xlabels, fontsize=9)
 ax.set_ylabel("Beats the camera bias on\noff-center balls (%)")
 ax.set_ylim(0, 108); ax.set_yticks([0, 20, 40, 60, 80, 100])
-ax.set_title("Same hidden-ball items (n=34), two kinds of input")
+ax.legend(handles=[mpatches.Patch(color=TEAL, label="trained for the task"),
+                   mpatches.Patch(color=GRAPHITE, label="zero-shot generalist")],
+          loc="upper right", framealpha=0.9, fontsize=10)
+ax.set_title("Same hidden-ball items (n=34): training matters, the input barely does")
 fig.tight_layout(); fig.savefig(OUT / "wtb2-david-goliath.png", bbox_inches="tight"); plt.close(fig)
 print("wrote wtb2-david-goliath.png")
 
