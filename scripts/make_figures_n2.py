@@ -136,25 +136,24 @@ def _ratios(v):
 
 _variants = [("Full model\n(positions + velocity)", _ratios("full")),
              ("Positions only\n(velocity removed)", _ratios("pos_only"))]
-fig, ax = plt.subplots(figsize=(8.2, 4.8))
+fig, ax = plt.subplots(figsize=(8.6, 5.0))
 x = np.arange(2); w = 0.36
 s2b = [v[1][0] for v in _variants]; b2s = [v[1][1] for v in _variants]
-ax.bar(x - w / 2, s2b, w, color=AMBER, edgecolor="white", label="soccer → basketball")
-ax.bar(x + w / 2, b2s, w, color=TEAL, edgecolor="white", label="basketball → soccer")
+ax.bar(x - w / 2, s2b, w, color=AMBER, edgecolor="white", label="soccer -> basketball")
+ax.bar(x + w / 2, b2s, w, color=TEAL, edgecolor="white", label="basketball -> soccer")
 for i in range(2):
-    ax.text(i - w / 2, s2b[i] + .03, f"{s2b[i]:.2f}×", ha="center", fontweight="bold")
-    ax.text(i + w / 2, b2s[i] + .03, f"{b2s[i]:.2f}×", ha="center", fontweight="bold")
-    ax.annotate("", xy=(i - w / 2, max(s2b[i], b2s[i]) + 0.22),
-                xytext=(i + w / 2, max(s2b[i], b2s[i]) + 0.22),
-                arrowprops=dict(arrowstyle="<->", color="#555", lw=1.2))
-    ax.text(i, max(s2b[i], b2s[i]) + 0.30, f"gap {abs(s2b[i]-b2s[i]):.2f}",
-            ha="center", fontsize=10, color="#555")
+    ax.text(i - w / 2, s2b[i] + .04, f"{s2b[i]:.2f}x", ha="center", fontweight="bold")
+    ax.text(i + w / 2, b2s[i] + .04, f"{b2s[i]:.2f}x", ha="center", fontweight="bold")
+    # gap bracket BELOW the bars (clear of the legend/labels)
+    ax.annotate("", xy=(i - w / 2, 0.14), xytext=(i + w / 2, 0.14),
+                arrowprops=dict(arrowstyle="<->", color="#666", lw=1.2))
+    ax.text(i, 0.22, f"gap {abs(s2b[i]-b2s[i]):.2f}", ha="center", fontsize=10, color="#666")
 ax.axhline(1.0, color=RED, ls="--", lw=1.5)
-ax.text(1.45, 1.04, "perfect transfer (= in-domain)", color=RED, fontsize=9, ha="right")
+ax.text(0.5, 1.06, "perfect transfer (= in-domain error)", color=RED, fontsize=9, ha="center")
 ax.set_xticks(x); ax.set_xticklabels([v[0] for v in _variants])
-ax.set_ylabel("Zero-shot error ÷ in-domain error\n(1.0 = transfers perfectly)")
-ax.set_ylim(0, 2.7)
+ax.set_ylabel("Zero-shot error / in-domain error\n(1.0 = transfers perfectly)")
+ax.set_ylim(0, 2.8)
 ax.set_title("Remove the velocity channel and the asymmetry vanishes")
-ax.legend(framealpha=0.9, loc="upper right")
+ax.legend(framealpha=0.9, loc="upper left")
 fig.tight_layout(); fig.savefig(OUT / "wtb2-asymmetry-velocity.png", bbox_inches="tight"); plt.close(fig)
 print("wrote wtb2-asymmetry-velocity.png")
