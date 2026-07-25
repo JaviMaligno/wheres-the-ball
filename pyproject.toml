@@ -21,6 +21,7 @@ dependencies = [
     "scikit-learn>=1.5",
     "modal>=1.0",
     "cbor2<6",
+    "ripser>=0.6.15",
 ]
 
 # Deep inpainting fallback (LaMa): if OpenCV inpainting is not coherent enough, install
