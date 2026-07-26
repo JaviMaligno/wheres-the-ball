@@ -86,15 +86,10 @@ def err_xy(m, X, Y):
     return np.linalg.norm(p - Y, axis=1)
 
 
-def main() -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
-    base = pathlib.Path("data/sample-data/data")
-    print("Loading…")
-    tr = load(base / "Sample_Game_1")
-    te = load(base / "Sample_Game_2")
+def run(tr, te, tag: str) -> dict:
+    print(f"\n########## {tag}   (train {len(tr)}  test {len(te)}) ##########")
     Ytr = np.stack([b for _, b, _, _ in tr]); Yte = np.stack([b for _, b, _, _ in te])
     spd = np.array([s for _, _, s, _ in te])
-    print(f"train {len(tr)}  test {len(te)}")
 
     Xtr_full, Xte_full = feats(tr), feats(te)
     Xtr_pos, Xte_pos = feats(tr, POS_COLS), feats(te, POS_COLS)
@@ -152,12 +147,28 @@ def main() -> None:
     frac_good = (learned < 45).mean()
     print(f"  {frac_good:.0%} of flight balls have direction pinned within 45°")
 
-    res = {"still_full": float(np.median(e_full[still])), "still_pos": float(np.median(e_pos[still])),
-           "moving_full": float(np.median(e_full[~still])), "moving_pos": float(np.median(e_pos[~still])),
-           "dir_learned_deg": float(np.median(learned)), "dir_meanbase_deg": float(np.median(base_mean)),
-           "dir_within_45_frac": float(frac_good), "n_flight": int(fl_te.sum())}
+    return {"tag": tag,
+            "still_full": float(np.median(e_full[still])), "still_pos": float(np.median(e_pos[still])),
+            "moving_full": float(np.median(e_full[~still])), "moving_pos": float(np.median(e_pos[~still])),
+            "coupling_corr_still": float(np.corrcoef(coup[still], st_err)[0, 1]),
+            "dir_learned_deg": float(np.median(learned)), "dir_meanbase_deg": float(np.median(base_mean)),
+            "dir_within_45_frac": float(frac_good), "n_flight": int(fl_te.sum())}
+
+
+def main() -> None:
+    OUT.mkdir(parents=True, exist_ok=True)
+    base = pathlib.Path("data/sample-data/data")
+    print("Loading both games…")
+    g1 = load(base / "Sample_Game_1")
+    g2 = load(base / "Sample_Game_2")
+    res = [run(g1, g2, "g1->g2"), run(g2, g1, "g2->g1")]
     (OUT / "stillness.json").write_text(json.dumps(res, indent=2))
     print(f"\nSaved {OUT/'stillness.json'}")
+    print("\n=== ROBUSTNESS SUMMARY (both directions) ===")
+    print(f"{'':10}{'still full':>12}{'moving full':>13}{'coup corr':>11}{'dir deg':>9}")
+    for r in res:
+        print(f"{r['tag']:10}{r['still_full']:>12.4f}{r['moving_full']:>13.4f}"
+              f"{r['coupling_corr_still']:>11.2f}{r['dir_learned_deg']:>9.1f}")
 
 
 if __name__ == "__main__":
