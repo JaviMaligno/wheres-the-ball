@@ -1,0 +1,12 @@
+{
+  "full": {
+    "soccer_to_basket": 0.3467750549316406,
+    "basket_to_soccer": 0.18511757254600525,
+    "asymmetry": 0.16165748238563538
+  },
+  "pos_only": {
+    "soccer_to_basket": 0.2815549969673157,
+    "basket_to_soccer": 0.19097605347633362,
+    "asymmetry": 0.09057894349098206
+  }
+}

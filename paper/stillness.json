@@ -1,0 +1,26 @@
+[
+  {
+    "tag": "g1->g2",
+    "still_full": 0.14189487361052155,
+    "still_pos": 0.16022516152257532,
+    "moving_full": 0.10526303464288393,
+    "moving_pos": 0.1445053341181334,
+    "coupling_corr_still": 0.5287767365218065,
+    "dir_learned_deg": 44.790770625420336,
+    "dir_meanbase_deg": 91.73731450447075,
+    "dir_within_45_frac": 0.5009060618460279,
+    "n_flight": 17107
+  },
+  {
+    "tag": "g2->g1",
+    "still_full": 0.16159193364571126,
+    "still_pos": 0.1638544865409929,
+    "moving_full": 0.10787197958995093,
+    "moving_pos": 0.1462882904267877,
+    "coupling_corr_still": 0.6458983934529579,
+    "dir_learned_deg": 45.16296716892549,
+    "dir_meanbase_deg": 91.4729215548505,
+    "dir_within_45_frac": 0.4985324491792586,
+    "n_flight": 18398
+  }
+]

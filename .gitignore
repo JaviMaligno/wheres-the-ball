@@ -18,3 +18,9 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+paper/main.pdf
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg

@@ -1,0 +1,49 @@
+\begin{thebibliography}{1}
+
+\bibitem{sportvu2016}
+Nba sportvu movement data (2015-16).
+\newblock \url{https://github.com/linouk23/NBA-Player-Movements}, 2016.
+
+\bibitem{bishop1994mdn}
+Christopher~M. Bishop.
+\newblock Mixture density networks.
+\newblock {\em Technical Report NCRG/94/004, Aston University}, 1994.
+
+\bibitem{cioppa2022soccernet}
+Anthony Cioppa, Silvio Giancola, et~al.
+\newblock Soccernet-tracking: Multiple object tracking dataset and benchmark in
+  soccer videos.
+\newblock In {\em CVPR Workshops}, 2022.
+
+\bibitem{metrica2020}
+{Metrica Sports}.
+\newblock Metrica sports sample data.
+\newblock \url{https://github.com/metrica-sports/sample-data}, 2020.
+
+\bibitem{achiam2023gpt4}
+OpenAI.
+\newblock Gpt-4 technical report.
+\newblock \url{https://arxiv.org/abs/2303.08774}, 2023.
+
+\bibitem{skillcorner2020}
+{SkillCorner}.
+\newblock Skillcorner open data.
+\newblock \url{https://github.com/SkillCorner/opendata}, 2020.
+
+\bibitem{suvorov2022lama}
+Roman Suvorov, Elizaveta Logacheva, Anton Mashikhin, et~al.
+\newblock Resolution-robust large mask inpainting with fourier convolutions.
+\newblock In {\em WACV}, 2022.
+
+\bibitem{ripser2021}
+Christopher Tralie, Nathaniel Saul, and Rann Bar-On.
+\newblock Ripser.py: A lean persistent homology library for python.
+\newblock {\em Journal of Open Source Software}, 2018.
+
+\bibitem{zaheer2017deepsets}
+Manzil Zaheer, Satwik Kottur, Siamak Ravanbakhsh, Barnab{\'a}s P{\'o}czos,
+  Ruslan Salakhutdinov, and Alexander Smola.
+\newblock Deep sets.
+\newblock In {\em NeurIPS}, 2017.
+
+\end{thebibliography}

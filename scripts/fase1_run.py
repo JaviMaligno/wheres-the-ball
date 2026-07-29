@@ -50,7 +50,10 @@ def main() -> None:
                     help="prompt variant (RQ3: informed names the sport + tactics)")
     ap.add_argument("--skip-gpt", action="store_true", help="don't (re)run GPT")
     ap.add_argument("--skip-claude", action="store_true", help="don't (re)run Claude")
+    ap.add_argument("--pred-path", default=str(PRED),
+                    help="predictions file (use a per-model path to run models in parallel safely)")
     args = ap.parse_args()
+    pred_path = pathlib.Path(args.pred_path)
 
     _ensure_anthropic_key()
     from wheres_the_ball.baselines.geometric import center_of_frame, centroid
@@ -63,7 +66,7 @@ def main() -> None:
     if args.limit:
         items = items[: args.limit]
 
-    preds = json.loads(PRED.read_text()) if PRED.exists() and not args.overwrite else {}
+    preds = json.loads(pred_path.read_text()) if pred_path.exists() and not args.overwrite else {}
 
     def vlm(fn, img, prompt, **kw):
         try:
@@ -99,7 +102,7 @@ def main() -> None:
             rec[args.claude_key] = vlm(anthropic_claude.localize, img, prompt, model=args.claude_model)
 
         preds[it["id"]] = rec
-        PRED.write_text(json.dumps(preds, indent=2))  # incremental save
+        pred_path.write_text(json.dumps(preds, indent=2))  # incremental save
         g = (rec.get(args.gpt_key) or {}).get("x"); c = (rec.get(args.claude_key) or {}).get("x")
         leak = rec.get("leak", {})
         flag = "LEAK" if leak.get("ball_visible") or leak.get("artifact_visible") else "ok"
@@ -107,7 +110,7 @@ def main() -> None:
               f"gpt={'%.2f'%g if g is not None else 'ERR'} "
               f"claude={'%.2f'%c if c is not None else 'ERR'} leak={flag}")
 
-    print(f"\nWrote {PRED} ({len(preds)} items)")
+    print(f"\nWrote {pred_path} ({len(preds)} items)")
 
 
 if __name__ == "__main__":

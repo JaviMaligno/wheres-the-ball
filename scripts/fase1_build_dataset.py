@@ -45,25 +45,27 @@ def center_bin(cx: float, cy: float) -> str:
     return "near" if d < 0.15 else ("mid" if d < 0.30 else "far")
 
 
-def gather(zf, seed):
+def gather(sources, seed):
+    """sources: list of (zipfile, split). Returns candidates + clips[name]=(clip,zf,split)."""
     cands = []
     clips = {}
-    for cp in list_clips(zf):
-        c = load_clip(zf, cp)
-        clips[c.info.name] = c
-        W, H = c.info.width, c.info.height
-        for f in range(1, c.info.length + 1, SAMPLE_EVERY):
-            s = classify(c, f)
-            if not s:
-                continue
-            b = c.ball_at(f)
-            cb = center_bin(b[0] / W, b[1] / H)
-            cands.append({"clip": c.info.name, "frame": f, "state": s, "center": cb})
+    for zf, split in sources:
+        for cp in list_clips(zf):
+            c = load_clip(zf, cp)
+            clips[c.info.name] = (c, zf, split)
+            W, H = c.info.width, c.info.height
+            for f in range(1, c.info.length + 1, SAMPLE_EVERY):
+                s = classify(c, f)
+                if not s:
+                    continue
+                b = c.ball_at(f)
+                cb = center_bin(b[0] / W, b[1] / H)
+                cands.append({"clip": c.info.name, "frame": f, "state": s, "center": cb})
     random.Random(seed).shuffle(cands)
     return cands, clips
 
 
-def select(cands, axis, targets):
+def select(cands, axis, targets, clip_cap=CLIP_CAP):
     strata = STATE_STRATA if axis == "state" else CENTER_STRATA
     chosen, per_clip = [], {}
     counts = {k: 0 for k in strata}
@@ -71,12 +73,13 @@ def select(cands, axis, targets):
     # (e.g. off-center 'far' balls, which the ball-following camera makes uncommon)
     # isn't starved of the per-clip budget by abundant bins.
     avail = {k: sum(1 for cd in cands if cd[axis] == k) for k in strata}
+    print(f"  available per stratum: {avail}")
     for key in sorted(strata, key=lambda k: avail[k]):
         for cd in cands:
             if cd[axis] != key or counts[key] >= targets[key]:
                 continue
             picks = per_clip.get(cd["clip"], [])
-            if len(picks) >= CLIP_CAP or any(abs(cd["frame"] - p) < MIN_GAP for p in picks):
+            if len(picks) >= clip_cap or any(abs(cd["frame"] - p) < MIN_GAP for p in picks):
                 continue
             chosen.append(cd)
             per_clip.setdefault(cd["clip"], []).append(cd["frame"])
@@ -87,6 +90,9 @@ def select(cands, axis, targets):
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--zip", default="data/SoccerNet/tracking/test.zip")
+    ap.add_argument("--zips", nargs="+", default=None,
+                    help="multiple zips (overrides --zip), e.g. test.zip train.zip")
+    ap.add_argument("--clip-cap", type=int, default=CLIP_CAP)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--balance", choices=["state", "center"], default="center")
     # state targets
@@ -104,20 +110,20 @@ def main() -> None:
     else:
         targets = {k: getattr(args, k) for k in CENTER_STRATA}
 
-    zf = zipfile.ZipFile(args.zip)
-    split = pathlib.Path(args.zip).stem
+    zip_paths = args.zips or [args.zip]
+    sources = [(zipfile.ZipFile(p), pathlib.Path(p).stem) for p in zip_paths]
     dirs = {n: OUT / n for n in ("masked", "original", "masks", "masked_telea")}
     for d in dirs.values():
         d.mkdir(parents=True, exist_ok=True)
 
-    print(f"Gathering candidates (balance={args.balance})…")
-    cands, clips = gather(zf, args.seed)
-    chosen, counts = select(cands, args.balance, targets)
-    print(f"Selected {len(chosen)}. Per {args.balance}: {counts} (targets {targets})")
+    print(f"Gathering candidates from {[s for _, s in sources]} (balance={args.balance})…")
+    cands, clips = gather(sources, args.seed)
+    chosen, counts = select(cands, args.balance, targets, clip_cap=args.clip_cap)
+    print(f"Selected {len(chosen)}. Per {args.balance}: {counts} (targets {targets}, clip_cap {args.clip_cap})")
 
     items = []
     for cd in chosen:
-        c = clips[cd["clip"]]
+        c, zf, split = clips[cd["clip"]]
         W, H, frame = c.info.width, c.info.height, cd["frame"]
         bcx, bcy, bw, bh = c.ball_at(frame)
         speed = ball_speed(c, frame) or 0.0
