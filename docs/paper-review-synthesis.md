@@ -43,7 +43,10 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
 
 - **F1.** §4.6 "positions-only 0.258 vs 0.111" — 0.258 is **TDA-only**, not positions-only.
 - **F2.** "error highest when still 12/12" → **10/12** (12/12 is only the velocity-contribution claim).
-- **F3.** Frame counts **250k (soccer) vs 231k (soccer+basket)** are mutually impossible; reconcile.
+- **F3.** RESOLVED (labeling bug, data is consistent): soccer = **249,917** frames (~250k, 12 matches),
+  basketball = **231,351** frames (~231k, 6 games). The paper's "231k" is *basketball alone*, wrongly
+  presented as the cross-sport/combined count. Fix: say "~250k soccer + ~231k basketball (~481k total)",
+  not "231k soccer+basket".
 - **F4.** "ten features" → **11** named features (or hedge "~ten").
 - **F5.** Fig 1 caption "n=120" — Llama far bin is **118**.
 - **F6.** "court ~1/6 the area" → actually **~1/16** (28×15 vs 105×68); keep the ~4× linear/velocity.
