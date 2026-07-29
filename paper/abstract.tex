@@ -6,12 +6,12 @@ camera-center baseline on off-center balls---GPT-5.4 is at chance, Llama-4 below
 permutation-invariant network of $\sim$14k parameters ($\sim$60\,kB), trained only on
 player positions and velocities, cracks the same off-center cases. We then open this
 specialist. Across \textbf{12 matches from two leagues} (250k frames, leave-one-match-out),
-ten interpretable geometric features fed to a gradient-boosted tree match the deep
+eleven interpretable geometric features fed to a gradient-boosted tree match the deep
 network, and a single feature---the \emph{velocity-weighted centroid}---dominates.
 Ablations show the signal is collective \emph{motion}: removing velocity costs
-$0.035\pm0.002$ (12/12 matches), and the model's error is highest and its velocity
-features useless precisely when the ball is \emph{still} (12/12). A cross-sport study
-(soccer vs.\ basketball, 231k frames) locates the zero-shot transfer asymmetry in the
+$0.035\pm0.002$ (12/12 matches), velocity's contribution collapses when the ball is
+\emph{still} (12/12), and error is highest for the still ball (10/12). A cross-sport study
+(soccer 250k + basketball 231k frames) locates the zero-shot transfer asymmetry in the
 velocity channel: it collapses when velocities are removed. Finally, a mixture-density
 head is globally calibrated yet systematically over-confident on loose balls in open
 space---the same hard cases the VLMs fail. The capability VLMs lack is specific, cheap

@@ -51,7 +51,7 @@ SoccerNet-Tracking test and train splits with a per-clip cap.
 $(x,y,v_x,v_y,\text{team})$ over a 1\,s window.
 \textbf{Models.} (i) frontier VLMs (GPT, Claude family) prompted to output ball
 coordinates on the inpainted image; (ii) a Deep Sets specialist ($\sim$14k params); (iii)
-an interpretable model: $\sim$10 named geometric features + gradient-boosted trees; (iv)
+an interpretable model: eleven named geometric features + gradient-boosted trees; (iv)
 a mixture-density head for uncertainty. Baselines: frame center (B0) and the (velocity-
 weighted) player centroid (B1).
 
@@ -69,7 +69,7 @@ near-center items, where the camera has already done the work.
 
 \begin{figure}[t]\centering
 \includegraphics[width=\figw]{figures/fig1_vlm.pdf}
-\caption{Far bin ($n=120$, off-center balls), 95\% bootstrap CIs. No current frontier
+\caption{Far bin ($n=120$; Llama-4 $n=118$), off-center balls, 95\% bootstrap CIs. No current frontier
 VLM beats the camera-center baseline (dashed): GPT-5.4 is at chance, Llama-4-Maverick
 below it. The trained specialist (\S4.2) beats it. Claude Opus 4.8 / Sonnet 4.6 runs
 were partial (API-credit limited, few far items) and omitted from the far comparison.}
@@ -114,13 +114,13 @@ is smaller when still in 12/12 matches.}
 \end{figure}
 
 \subsection{Cross-sport transfer and the velocity-scale mechanism}
-Trained on one sport and tested zero-shot on the other (12 soccer + 6 basketball games,
-231k frames), the Deep Sets transfers asymmetrically---basketball$\rightarrow$soccer
+Trained on one sport and tested zero-shot on the other (12 soccer matches, 250k frames;
+6 basketball games, 231k frames), the Deep Sets transfers asymmetrically---basketball$\rightarrow$soccer
 $0.196$ vs.\ soccer$\rightarrow$basketball $0.395$. The asymmetry lives in the velocity
 channel: in ratio over in-domain difficulty it shrinks from $0.52$ (full) to $0.09$
-(positions only). A basketball court is $\sim1/6$ the area of a pitch, so normalized
-velocities differ 3--4$\times$; the learned use of velocity is scale-bound and does not
-cross, while scale-free positions do. The interpretable geometry model, which rescales a
+(positions only). A basketball court is $\sim$1/16 the area of a pitch ($\sim$4$\times$
+shorter linearly), so in normalized coordinates velocities differ 3--4$\times$; the
+learned use of velocity is scale-bound and does not cross, while scale-free positions do. The interpretable geometry model, which rescales a
 single velocity feature, transfers near-symmetrically---the asymmetry is a property of the
 distributed representation.
 
@@ -134,8 +134,9 @@ off-center balls the VLMs fail.
 
 \subsection{Topology adds nothing}
 Persistent homology features (loop centres, largest empty Delaunay circles, persistence
-statistics) do not beat plain geometry (positions-only 0.258 vs.\ 0.111 soccer) and are
-ignored when concatenated to it---a pre-registered negative result.
+statistics) do not beat plain geometry (topology-only 0.258 vs.\ geometry 0.111 in soccer)
+and are ignored when concatenated to it---a negative result fixed by a threshold set in
+advance (topology must beat the geometry model).
 
 \section{Discussion and Limitations}
 The capability frontier VLMs lack here is narrow and identifiable---reading collective
