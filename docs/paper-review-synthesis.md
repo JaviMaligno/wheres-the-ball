@@ -30,9 +30,12 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
   untraceable (deep-check ratio 0.52→0.09; geo `asym_ratio` −0.75→−0.08; decompose 0.16→0.09 —
   three different pairs). Rerun deep transfer under LOMO, pick ONE asymmetry metric, report both
   models on it, state which model each number is. [local, multi-seed, ~$0, ~1h]
-- **B5. Run the leak control on the final set.** `predictions.json` (n=260) has zero `leak` keys —
-  the advertised leak control never ran on the reported items. Run the VLM leak check, report the
-  flag rate, re-run the far comparison excluding flagged items. [Azure, ~$5, ~30min]
+- **B5. DONE (2026-07-29).** Ran the VLM leak check on all 260 items (0 errors). Flag rate
+  **33/260 = 12.7%** (ball or artifact judged visible). Re-ran the far-bin comparison excluding
+  flagged items — **headline robust**: GPT far 52%→54% (median 0.354→0.345), Llama 34%→32%
+  (0.454→0.453). No VLM beats the camera baseline on off-center balls with or without leak-flagged
+  items. Leak field now persisted in predictions.json. → add the flag rate + the excl-leak robustness
+  row to the paper.
 - **B6. Fix inpainting reproducibility.** Results use `masked/*.png` but `inpaint_lama.py` writes
   `.jpg`, and `uvx --from iopaint` floats the version. Reconcile which script produced the pngs,
   pin the iopaint/LaMa version + settings (device, checkpoint, resize), document. [local ~15min]
