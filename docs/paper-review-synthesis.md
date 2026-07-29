@@ -17,10 +17,11 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
   (ACCV 2024), pitch control (Spearman, Sloan 2018). `docs/00-vision-general.md` already mandated
   citing Maksai/Kim/Capellera. Rewrite Related Work; differentiate our angle = counterfactual
   (object removed) + de-biased + minimal-signal dissection + calibration. [writing; no compute]
-- **B2. Strawman deep baseline → real ceiling.** The 132% recovery is vs a 500-step, single-seed
-  DeepSets (0.126). Train a properly tuned, multi-seed DeepSets (val split, early stop) and/or run
-  a BallRadar/TranSPORTmer-style deep ceiling. Reframe to "geometry *matches* the deep model"
-  (~100%), drop "edges out"/"132%". [local/Modal GPU, ~$0–3, ~1–2h]
+- **B2. DONE (2026-07-29).** Tuned multi-seed DeepSets (val split + early stopping, 3 seeds),
+  LOMO over 12 matches (`paper_deep_tuned.py`): tuned deep **0.087±0.008** (across-seed std 0.002 →
+  stable, also closes M10 for the deep) beats geo 0.099 in 12/12. **Corrected recovery = 91%±3%**
+  (was the strawman 132%). Fig 2 regenerated + §4.2/caption/abstract rewritten to the honest
+  "geometry recovers 91% of a tuned deep model; deep keeps a small edge" framing. Compiles clean.
 - **B3. Measure the VLM↔specialist bridge.** Fig 1 implies the specialist beats the VLMs but they
   never competed on the same items/input (specialist = field GT tracks; VLMs = SoccerNet pixels).
   Run a head-to-head on a shared set: geometry model on the n=260 `players` field, and/or VLMs on

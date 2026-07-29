@@ -77,20 +77,22 @@ were partial (API-credit limited, few far items) and omitted from the far compar
 \end{figure}
 
 \subsection{The specialist computes interpretable geometry}
-Leave-one-match-out over 12 soccer matches (Metrica + 10 SkillCorner, 250k frames), the
-interpretable geometry model matches the deep specialist and both crush the centroid
+Leave-one-match-out over 12 soccer matches (Metrica + 10 SkillCorner, 250k frames),
+eleven interpretable geometric features fed to a gradient-boosted tree recover
+$\mathbf{91\%\pm3\%}$ of a tuned, multi-seed Deep Sets specialist's gain over the centroid
 baseline (Fig.~\ref{fig:core}). A single feature---the velocity-weighted centroid---
-carries the localization; the remaining features are rounding, and a tidy
-motion-ray convergence point barely helps.
+carries the localization; the remaining features add only marginal gains, and a tidy
+motion-ray convergence point barely helps. The deep model does retain a small edge
+($0.087$ vs.\ $0.099$, 12/12 matches), so the reading is that most---not all---of what the
+black box learns is a legible geometric quantity, not that geometry replaces deep learning.
 
 \begin{figure}[t]\centering
 \includegraphics[width=\figw]{figures/fig2_core.pdf}
-\caption{Leave-one-match-out across 12 matches, two leagues (mean$\pm$std). Interpretable
-geometry ($0.099\pm0.006$) matches---here even edges out---a per-fold Deep Sets
-($0.126\pm0.009$); both far below the centroid baseline ($0.213\pm0.008$). Beats the
-baseline in 12/12 matches. The specialist is not hiding a deep pattern. (The per-fold
-Deep Sets is lightly trained; a tuned deep model reaches $\sim$0.10, on par with the
-interpretable model.)}
+\caption{Leave-one-match-out across 12 matches, two leagues (mean$\pm$std). A tuned
+multi-seed Deep Sets ($0.087\pm0.008$; across-seed std $0.002$) is the best model;
+eleven interpretable geometric features ($0.099\pm0.006$) recover $91\%$ of its gain over
+the centroid baseline ($0.213\pm0.008$). Most of what the specialist learns is a legible
+geometric quantity---chiefly the velocity-weighted centroid.}
 \label{fig:core}
 \end{figure}
 

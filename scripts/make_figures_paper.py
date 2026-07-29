@@ -49,12 +49,14 @@ ax.set_title("No current frontier VLM beats the camera on off-center balls", fon
 fig.savefig(FIG / "fig1_vlm.pdf"); fig.savefig(FIG / "fig1_vlm.png"); plt.close(fig)
 print("wrote fig1_vlm")
 
-# ---- fig2: centroid / deep / geometry across 12 matches (mean ± std) ----
-core = json.loads((N3 / "paper_scale_core.json").read_text())
-cen = np.array([r["centroid"] for r in core]); deep = np.array([r["deep"] for r in core])
-geo = np.array([r["geo"] for r in core])
+# ---- fig2: centroid / tuned deep / geometry across 12 matches (mean ± std) ----
+# deep is the TUNED multi-seed DeepSets (paper_deep_tuned.json), not the old lightly-trained one.
+tuned = json.loads((N3 / "paper_deep_tuned.json").read_text())
+cen = np.array([r["centroid"] for r in tuned]); deep = np.array([r["deep_tuned"] for r in tuned])
+geo = np.array([r["geo"] for r in tuned])
+recovery = np.array([r["recovery"] for r in tuned])
 fig, ax = plt.subplots(figsize=(6.0, 3.6))
-vals = [("Centroid\n(untrained)", cen, GRAPHITE), ("Deep Sets\n(black box)", deep, AMBER),
+vals = [("Centroid\n(untrained)", cen, GRAPHITE), ("Tuned Deep Sets\n(black box)", deep, AMBER),
         ("Interpretable\ngeometry", geo, TEAL)]
 x = np.arange(len(vals))
 ax.bar(x, [v.mean() for _, v, _ in vals], 0.55, color=[c for _, _, c in vals],
@@ -64,7 +66,8 @@ for xi, (_, v, _) in zip(x, vals):
 ax.set_xticks(x); ax.set_xticklabels([n for n, _, _ in vals])
 ax.set_ylabel("median error (12 matches)")
 ax.set_ylim(0, 0.26)
-ax.set_title("Interpretable geometry matches the black box", fontsize=11.5, fontweight="bold")
+ax.set_title(f"Interpretable geometry recovers {recovery.mean():.0%} of the deep model",
+             fontsize=11.5, fontweight="bold")
 fig.savefig(FIG / "fig2_core.pdf"); fig.savefig(FIG / "fig2_core.png"); plt.close(fig)
 print("wrote fig2_core")
 
