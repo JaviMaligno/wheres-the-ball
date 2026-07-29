@@ -1,0 +1,153 @@
+% Shared body for both the one-column (main.tex) and two-column (main_twocol.tex)
+% builds. Figure width is controlled by \figw, defined per-wrapper (\linewidth in 2-col,
+% a fraction of \linewidth in 1-col). Wide figures use \figstar (figure* in 2-col,
+% figure in 1-col), also defined per-wrapper.
+
+\section{Introduction}
+Ask a spectator where the ball is in a match photo with the ball digitally erased and
+they will often point close to the truth: the players' stances and motion give it away.
+Can machines do the same, and what exactly is the signal? We formalize \emph{hidden-ball
+localization}---predict the ball's image (or field) position from players only---as a
+probe of spatial inference, and use it to contrast frontier VLMs against a tiny
+task-specific model, then to reverse-engineer what makes the task solvable.
+
+Our contributions:
+\begin{itemize}
+  \item A \textbf{de-biased benchmark} ($n=260$) on SoccerNet-Tracking broadcast frames
+  with the ball removed by LaMa inpainting~\cite{suvorov2022lama} and a leak control,
+  balancing ball position to neutralize the ball-following camera. No current frontier
+  VLM (GPT-5.4, Llama-4-Maverick) beats a camera-center baseline on off-center balls.
+  \item A \textbf{scale-up to 12 matches across two leagues} showing interpretable
+  geometry recovers the deep specialist, and that the localization signal is
+  \emph{collective motion}, with the \emph{still ball} as the model's blind spot.
+  \item A \textbf{cross-sport analysis} placing the zero-shot transfer asymmetry in the
+  velocity channel, and a \textbf{calibration study} exposing over-confidence on exactly
+  the hard, off-center cases.
+\end{itemize}
+
+\section{Related Work}
+\textbf{VLM spatial reasoning.} Frontier VLMs~\cite{achiam2023gpt4} excel at description
+but are known to struggle with fine spatial relations; we contribute a controlled,
+counterfactual probe (the object of interest is removed) rather than a description task.
+\textbf{Sports tracking.} SoccerNet-Tracking~\cite{cioppa2022soccernet},
+Metrica~\cite{metrica2020}, SkillCorner~\cite{skillcorner2020} and NBA
+SportVU~\cite{sportvu2016} provide player/ball trajectories. We use the ball only as a
+target, never as input. \textbf{Set functions.} The specialist is a permutation-invariant
+Deep Set~\cite{zaheer2017deepsets}. \textbf{Uncertainty.} We use a mixture-density
+head~\cite{bishop1994mdn}. \textbf{Topology.} We test persistent
+homology~\cite{ripser2021} features and find they add nothing over plain geometry.
+
+\section{Task, Data, and Method}
+\textbf{Task.} Given players (image or field coordinates, with velocities) at one instant,
+predict the ball position; the ball is never observed at input. Error is the median
+Euclidean distance in normalized coordinates.
+\textbf{Image space.} From SoccerNet-Tracking we sample frames, remove the ball with a
+speed-padded mask + LaMa, and verify non-leakage with a VLM leak check. We balance items
+by distance of the ball from frame center (near/mid/far) to defeat the camera-center
+baseline. The scaled set is 260 items (80 near / 60 mid / 120 far), drawn from the
+SoccerNet-Tracking test and train splits with a per-clip cap.
+\textbf{Field space.} Metrica + SkillCorner (soccer, two leagues) and NBA SportVU
+(basketball) give ground-truth player and ball tracks; per-player features are
+$(x,y,v_x,v_y,\text{team})$ over a 1\,s window.
+\textbf{Models.} (i) frontier VLMs (GPT, Claude family) prompted to output ball
+coordinates on the inpainted image; (ii) a Deep Sets specialist ($\sim$14k params); (iii)
+an interpretable model: $\sim$10 named geometric features + gradient-boosted trees; (iv)
+a mixture-density head for uncertainty. Baselines: frame center (B0) and the (velocity-
+weighted) player centroid (B1).
+
+\section{Results}
+
+\subsection{Frontier VLMs do not solve the off-center cases}
+On the de-biased set ($n=260$: 80 near / 60 mid / 120 far), we prompt current frontier
+VLMs to output ball coordinates on the LaMa-inpainted image. The decisive bin is
+\emph{far}: off-center balls where the camera-center baseline (error $0.362$) is weak.
+No current VLM reliably beats that baseline there. GPT-5.4 is
+at chance (win-rate $52\%$, CI $[43,62]$); Llama-4-Maverick is \emph{below} it
+($34\%$, CI $[25,42]$; Fig.~\ref{fig:vlm}). Predicted--ground-truth correlation in the
+far bin is weak (GPT-5.4 $r_y=0.29$; Llama-4 $r_y=0.07$). VLMs post good medians only on
+near-center items, where the camera has already done the work.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\figw]{figures/fig1_vlm.pdf}
+\caption{Far bin ($n=120$, off-center balls), 95\% bootstrap CIs. No current frontier
+VLM beats the camera-center baseline (dashed): GPT-5.4 is at chance, Llama-4-Maverick
+below it. The trained specialist (\S4.2) beats it. Claude Opus 4.8 / Sonnet 4.6 runs
+were partial (API-credit limited, few far items) and omitted from the far comparison.}
+\label{fig:vlm}
+\end{figure}
+
+\subsection{The specialist computes interpretable geometry}
+Leave-one-match-out over 12 soccer matches (Metrica + 10 SkillCorner, 250k frames), the
+interpretable geometry model matches the deep specialist and both crush the centroid
+baseline (Fig.~\ref{fig:core}). A single feature---the velocity-weighted centroid---
+carries the localization; the remaining features are rounding, and a tidy
+motion-ray convergence point barely helps.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\figw]{figures/fig2_core.pdf}
+\caption{Leave-one-match-out across 12 matches, two leagues (mean$\pm$std). Interpretable
+geometry ($0.099\pm0.006$) matches---here even edges out---a per-fold Deep Sets
+($0.126\pm0.009$); both far below the centroid baseline ($0.213\pm0.008$). Beats the
+baseline in 12/12 matches. The specialist is not hiding a deep pattern. (The per-fold
+Deep Sets is lightly trained; a tuned deep model reaches $\sim$0.10, on par with the
+interpretable model.)}
+\label{fig:core}
+\end{figure}
+
+\subsection{The signal is collective motion; stillness is the blind spot}
+Removing the velocity channel costs $0.035\pm0.002$ in median error and hurts in
+\textbf{12/12} matches (Fig.~\ref{fig:mech}). Splitting by ball speed, error is highest for the \emph{settled}
+ball ($<2$\,m/s), and velocity's contribution collapses when the ball is still
+($+0.016$ vs.\ $+0.041$ moving; less-when-still in 12/12). The worst still balls sit
+centrally, far from the player mass (coupling--error correlation $+0.53$ to $+0.65$): a
+dead ball no one is near or moving toward is undetermined. In flight, the ball's
+\emph{direction} of travel is readable from players well above chance
+($45^\circ$ median vs.\ $90^\circ$).
+
+\begin{figure}[t]\centering
+\includegraphics[width=\figw]{figures/fig3_mechanism.pdf}
+\caption{Velocity ablation, still vs.\ moving ball, 12 matches (mean$\pm$std). Removing
+velocity (teal$\to$graphite) costs $+0.041$ when the ball moves but only $+0.016$ when
+it is still: with no motion there is no velocity signal to read. Velocity's contribution
+is smaller when still in 12/12 matches.}
+\label{fig:mech}
+\end{figure}
+
+\subsection{Cross-sport transfer and the velocity-scale mechanism}
+Trained on one sport and tested zero-shot on the other (12 soccer + 6 basketball games,
+231k frames), the Deep Sets transfers asymmetrically---basketball$\rightarrow$soccer
+$0.196$ vs.\ soccer$\rightarrow$basketball $0.395$. The asymmetry lives in the velocity
+channel: in ratio over in-domain difficulty it shrinks from $0.52$ (full) to $0.09$
+(positions only). A basketball court is $\sim1/6$ the area of a pitch, so normalized
+velocities differ 3--4$\times$; the learned use of velocity is scale-bound and does not
+cross, while scale-free positions do. The interpretable geometry model, which rescales a
+single velocity feature, transfers near-symmetrically---the asymmetry is a property of the
+distributed representation.
+
+\subsection{Calibration and the blind spot}
+A mixture-density head is globally calibrated (declared uncertainty tracks error,
+$r=+0.20$, monotonic) but over-confident on loose balls: as the ball moves away from the
+player mass its actual error rises (corr $+0.20$, CI $[0.18,0.22]$) while its declared
+uncertainty \emph{falls} (corr $-0.17$, CI $[-0.19,-0.15]$)---opposite-signed,
+non-overlapping. It is most confident exactly where it errs most, and these are the same
+off-center balls the VLMs fail.
+
+\subsection{Topology adds nothing}
+Persistent homology features (loop centres, largest empty Delaunay circles, persistence
+statistics) do not beat plain geometry (positions-only 0.258 vs.\ 0.111 soccer) and are
+ignored when concatenated to it---a pre-registered negative result.
+
+\section{Discussion and Limitations}
+The capability frontier VLMs lack here is narrow and identifiable---reading collective
+motion---and it is cheap: a 60\,kB set function learns it, and it reduces to a
+velocity-weighted centroid. Limitations: the tracking side uses ground-truth positions
+(an information ceiling); the VLM benchmark is a focused $n$ with bootstrap CIs; results
+are on open datasets from a handful of leagues.
+
+\section{Conclusion}
+A hidden ball is found through motion. Frontier models have the intuition faintly and
+cannot act on it; a tiny specialist reads it sharply, and the mechanism is interpretable
+geometry. The one thing none of them do is locate a ball that has stopped moving and
+drifted from the crowd.
+
+{\small \bibliographystyle{plain} \bibliography{refs}}

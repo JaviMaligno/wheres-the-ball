@@ -1,26 +1,25 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-*.egg-info/
-.uv/
 
-# Env / secrets
+__pycache__/
+.DS_Store
 .env
 .env.local
-
-# Data & outputs (large / regenerable) — anchored to repo root so the source
-# package src/wheres_the_ball/data/ is NOT ignored.
+.idea/
+.uv/
+.venv/
+.vscode/
+*.egg-info/
+*.py[cod]
 /data/
 /results/
-
+# Data & outputs (large / regenerable) — anchored to repo root so the source
+# Env / secrets
 # OS / editor
-.DS_Store
-.idea/
-.vscode/
-paper/main.pdf
+# package src/wheres_the_ball/data/ is NOT ignored.
+# Python
 paper/*.aux
-paper/*.log
-paper/*.out
 paper/*.bbl
 paper/*.blg
+paper/*.log
+paper/*.out
+paper/main_twocol.pdf
+paper/main.pdf

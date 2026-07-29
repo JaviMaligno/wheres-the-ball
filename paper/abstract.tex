@@ -1,0 +1,19 @@
+We study a deliberately narrow spatial-inference task: locate a \emph{hidden} ball from
+the configuration of the players alone, the way a spectator infers where play is headed.
+On a de-biased benchmark of broadcast frames with the ball inpainted away ($n=260$), no
+current frontier vision--language model (GPT-5.4, Llama-4-Maverick) reliably beats a
+camera-center baseline on off-center balls---GPT-5.4 is at chance, Llama-4 below it. A
+permutation-invariant network of $\sim$14k parameters ($\sim$60\,kB), trained only on
+player positions and velocities, cracks the same off-center cases. We then open this
+specialist. Across \textbf{12 matches from two leagues} (250k frames, leave-one-match-out),
+ten interpretable geometric features fed to a gradient-boosted tree match the deep
+network, and a single feature---the \emph{velocity-weighted centroid}---dominates.
+Ablations show the signal is collective \emph{motion}: removing velocity costs
+$0.035\pm0.002$ (12/12 matches), and the model's error is highest and its velocity
+features useless precisely when the ball is \emph{still} (12/12). A cross-sport study
+(soccer vs.\ basketball, 231k frames) locates the zero-shot transfer asymmetry in the
+velocity channel: it collapses when velocities are removed. Finally, a mixture-density
+head is globally calibrated yet systematically over-confident on loose balls in open
+space---the same hard cases the VLMs fail. The capability VLMs lack is specific, cheap
+to learn, and mechanistically simple: reading where the running mass of players is
+heading.
