@@ -166,7 +166,7 @@ def main() -> None:
             r = float(np.corrcoef(coup[m], std[m])[0, 1])
             print(f"       banda {k+1} (d2goal {edges[k]:.2f}-{edges[k+1]:.2f}): corr={r:+.2f} (n={int(m.sum())})")
 
-    # --- 2. inferability map (heatmap of median error over field cells) ---
+    # --- 2. inferability map (heatmap of median error over a real football pitch) ---
     gx, gy = 12, 8
     xi = np.clip((Yn[:, 0] * gx).astype(int), 0, gx - 1)
     yi = np.clip((Yn[:, 1] * gy).astype(int), 0, gy - 1)
@@ -176,19 +176,39 @@ def main() -> None:
             e = err[(xi == cx) & (yi == cy)]
             if len(e) >= 15:
                 grid[cy, cx] = np.median(e)
-    fig, ax = plt.subplots(figsize=(8.4, 5.4))
+    np.save(OUT / "inferability_grid.npy", grid)  # for redraw without retraining
+
+    def draw_pitch(ax, c="#0b3d1e", lw=1.6):
+        """FIFA pitch markings in normalized coords: x=length (goal-to-goal), y=width."""
+        import matplotlib.patches as mp
+        # perimeter + halfway line
+        ax.add_patch(mp.Rectangle((0, 0), 1, 1, fill=False, ec=c, lw=lw))
+        ax.plot([0.5, 0.5], [0, 1], color=c, lw=lw)
+        # centre circle (9.15 m) + spot — normalized radii differ per axis
+        ax.add_patch(mp.Ellipse((0.5, 0.5), 2 * 9.15 / 105, 2 * 9.15 / 68, fill=False, ec=c, lw=lw))
+        ax.plot(0.5, 0.5, "o", color=c, ms=2.5)
+        pen_d, pen_w = 16.5 / 105, 40.32 / 68      # penalty box
+        six_d, six_w = 5.5 / 105, 18.32 / 68       # six-yard box
+        goal_w = 7.32 / 68
+        for x0, sgn in ((0.0, 1), (1.0, -1)):
+            ax.add_patch(mp.Rectangle((x0, 0.5 - pen_w / 2), sgn * pen_d, pen_w, fill=False, ec=c, lw=lw))
+            ax.add_patch(mp.Rectangle((x0, 0.5 - six_w / 2), sgn * six_d, six_w, fill=False, ec=c, lw=lw))
+            ax.add_patch(mp.Rectangle((x0, 0.5 - goal_w / 2), sgn * -0.012, goal_w, fill=False, ec=c, lw=lw))
+            ax.plot(x0 + sgn * 11 / 105, 0.5, "o", color=c, ms=2.5)  # penalty spot
+
+    fig, ax = plt.subplots(figsize=(9.0, 6.2))
     im = ax.imshow(grid, origin="upper", cmap="RdYlGn_r", vmin=0.05, vmax=0.20,
-                   extent=[0, 1, 1, 0], aspect=gx / gy * 8 / 12)
-    ax.set_title("Where is the ball inferable from the players?\n(median error per pitch cell — greener = more determined)")
-    ax.set_xlabel("pitch length — goal to goal (normalized)"); ax.set_ylabel("pitch width (normalized)")
-    fig.colorbar(im, ax=ax, label="median localization error", shrink=0.8)
-    # goals sit at the two ends of the length axis
-    for g in (0.0, 1.0):
-        ax.axvline(g, color="#333", lw=1.2)
-    ax.text(0.02, 0.5, "goal", rotation=90, va="center", ha="left", fontsize=9, color="#333")
-    ax.text(0.98, 0.5, "goal", rotation=90, va="center", ha="right", fontsize=9, color="#333")
-    fig.tight_layout(); fig.savefig(FIG / "wtb3-inferability-map.png", bbox_inches="tight"); plt.close(fig)
-    print("\nwrote wtb3-inferability-map.png")
+                   extent=[0, 1, 1, 0], aspect=68 / 105, interpolation="bilinear", alpha=0.9)
+    draw_pitch(ax)
+    ax.set_xlim(-0.01, 1.01); ax.set_ylim(1.01, -0.01)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.set_title("Where is the ball inferable from the players?\n"
+                 "median localization error per pitch zone — greener = better determined", fontsize=12)
+    ax.text(0.02, 0.5, "goal", rotation=90, va="center", ha="left", fontsize=9, color="#0b3d1e")
+    ax.text(0.98, 0.5, "goal", rotation=90, va="center", ha="right", fontsize=9, color="#0b3d1e")
+    fig.colorbar(im, ax=ax, label="median localization error", shrink=0.62, pad=0.02)
+    fig.tight_layout(); fig.savefig(FIG / "wtb3-inferability-map.png", bbox_inches="tight", dpi=150); plt.close(fig)
+    print("\nwrote wtb3-inferability-map.png (over pitch)")
 
     # bootstrap CIs for the headline sign-contradiction (loose ball: error↑ but std↓)
     print("\n4) Bootstrap 95% CI (n=2000 resamples) del hallazgo de signo opuesto:")
