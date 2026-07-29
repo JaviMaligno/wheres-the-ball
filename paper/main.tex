@@ -100,22 +100,14 @@ at chance (win-rate $52\%$, CI $[43,62]$); Llama-4-Maverick is \emph{below} it
 (GPT-5.4 $r_y=0.29$; Llama-4 $r_y=0.07$). VLMs post good medians only on near-center
 items, where the camera has already done the work.
 
-\begin{table}[t]\centering
-\begin{tabular}{lccc}
-\toprule
-model (far bin) & median error & win vs.\ center & corr$_y$ \\
-\midrule
-camera center (baseline) & 0.362 & --- & --- \\
-GPT-5.4 & 0.354 & 52\% [43,62] & 0.29 \\
-Llama-4-Maverick & 0.454 & 34\% [25,42] & 0.07 \\
-\bottomrule
-\end{tabular}
+\begin{figure}[t]\centering
+\includegraphics[width=0.72\linewidth]{figures/fig1_vlm.pdf}
 \caption{Far bin ($n=120$, off-center balls), 95\% bootstrap CIs. No current frontier
-VLM beats the camera-center baseline; the trained specialist (\S4.2) does. Claude Opus
-4.8 / Sonnet 4.6 runs were partial (API-credit limited, few far items) and are omitted
-from the far comparison.}
-\label{tab:vlm}
-\end{table}
+VLM beats the camera-center baseline (dashed): GPT-5.4 is at chance, Llama-4-Maverick
+below it. The trained specialist (\S4.2) beats it. Claude Opus 4.8 / Sonnet 4.6 runs
+were partial (API-credit limited, few far items) and omitted from the far comparison.}
+\label{fig:vlm}
+\end{figure}
 
 \subsection{The specialist computes interpretable geometry}
 Leave-one-match-out over 12 soccer matches (Metrica + 10 SkillCorner, 250k frames), the
@@ -124,30 +116,35 @@ baseline (Table~\ref{tab:core}). A single feature---the velocity-weighted centro
 carries the localization; the remaining features are rounding, and a tidy
 motion-ray convergence point barely helps.
 
-\begin{table}[t]\centering
-\begin{tabular}{lccc}
-\toprule
- & centroid (B1) & Deep Sets & geometry+GBM \\
-\midrule
-median error & $0.213\pm0.008$ & $0.126\pm0.009$ & $\mathbf{0.099\pm0.006}$ \\
-beats B1 & --- & 12/12 & 12/12 \\
-\bottomrule
-\end{tabular}
-\caption{Across 12 held-out matches, two leagues. Interpretable geometry matches (here
-even edges out) a per-fold Deep Sets; both far below the centroid baseline. The specialist
-is not hiding a deep pattern.}
-\label{tab:core}
-\end{table}
+\begin{figure}[t]\centering
+\includegraphics[width=0.62\linewidth]{figures/fig2_core.pdf}
+\caption{Leave-one-match-out across 12 matches, two leagues (mean$\pm$std). Interpretable
+geometry ($0.099\pm0.006$) matches---here even edges out---a per-fold Deep Sets
+($0.126\pm0.009$); both far below the centroid baseline ($0.213\pm0.008$). Beats the
+baseline in 12/12 matches. The specialist is not hiding a deep pattern. (The per-fold
+Deep Sets is lightly trained; a tuned deep model reaches $\sim$0.10, on par with the
+interpretable model.)}
+\label{fig:core}
+\end{figure}
 
 \subsection{The signal is collective motion; stillness is the blind spot}
 Removing the velocity channel costs $0.035\pm0.002$ in median error and hurts in
-\textbf{12/12} matches. Splitting by ball speed, error is highest for the \emph{settled}
+\textbf{12/12} matches (Fig.~\ref{fig:mech}). Splitting by ball speed, error is highest for the \emph{settled}
 ball ($<2$\,m/s), and velocity's contribution collapses when the ball is still
 ($+0.016$ vs.\ $+0.041$ moving; less-when-still in 12/12). The worst still balls sit
 centrally, far from the player mass (coupling--error correlation $+0.53$ to $+0.65$): a
 dead ball no one is near or moving toward is undetermined. In flight, the ball's
 \emph{direction} of travel is readable from players well above chance
 ($45^\circ$ median vs.\ $90^\circ$).
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.68\linewidth]{figures/fig3_mechanism.pdf}
+\caption{Velocity ablation, still vs.\ moving ball, 12 matches (mean$\pm$std). Removing
+velocity (teal$\to$graphite) costs $+0.041$ when the ball moves but only $+0.016$ when
+it is still: with no motion there is no velocity signal to read. Velocity's contribution
+is smaller when still in 12/12 matches.}
+\label{fig:mech}
+\end{figure}
 
 \subsection{Cross-sport transfer and the velocity-scale mechanism}
 Trained on one sport and tested zero-shot on the other (12 soccer + 6 basketball games,
