@@ -14,7 +14,8 @@ task-specific model, then to reverse-engineer what makes the task solvable.
 Our contributions:
 \begin{itemize}
   \item A \textbf{de-biased benchmark} ($n=260$) on SoccerNet-Tracking broadcast frames
-  with the ball removed by LaMa inpainting~\cite{suvorov2022lama} and a leak control,
+  with the ball removed by LaMa inpainting~\cite{suvorov2022lama} and a leak control (a VLM
+  check confirming the inpainted ball is not recoverable from the image),
   balancing ball position to neutralize the ball-following camera. No current frontier
   VLM (GPT-5.4, Llama-4-Maverick) beats a camera-center baseline on off-center balls.
   \item A \textbf{scale-up to 12 matches across two leagues} showing interpretable
@@ -26,16 +27,28 @@ Our contributions:
 \end{itemize}
 
 \section{Related Work}
-\textbf{VLM spatial reasoning.} Frontier VLMs~\cite{achiam2023gpt4} excel at description
-but are known to struggle with fine spatial relations; we contribute a controlled,
-counterfactual probe (the object of interest is removed) rather than a description task.
-\textbf{Sports tracking.} SoccerNet-Tracking~\cite{cioppa2022soccernet},
-Metrica~\cite{metrica2020}, SkillCorner~\cite{skillcorner2020} and NBA
-SportVU~\cite{sportvu2016} provide player/ball trajectories. We use the ball only as a
-target, never as input. \textbf{Set functions.} The specialist is a permutation-invariant
-Deep Set~\cite{zaheer2017deepsets}. \textbf{Uncertainty.} We use a mixture-density
-head~\cite{bishop1994mdn}. \textbf{Topology.} We test persistent
-homology~\cite{ripser2021} features and find they add nothing over plain geometry.
+\textbf{Ball from players.} Recovering the ball from player configuration is an established
+task: Maksai et al.~\cite{maksai2016players} denoise ball trajectories under physical and
+interaction constraints; BallRadar~\cite{kim2023ballradar} regresses the full ball trajectory
+from tracking with a permutation-invariant set model plus a possession stage;
+TranSPORTmer~\cite{capellera2024transportmer} folds ball inference into a holistic multi-agent
+transformer. Our contribution is not \emph{whether} this is possible but a strictly
+counterfactual, camera-de-biased benchmark, a minimal-signal geometric dissection, a
+velocity-scale transfer analysis, and a calibration blind spot---not a point trajectory.
+\textbf{Interpretable spatial value.} The velocity-weighted centroid is a lightweight cousin
+of pitch control: Spearman's pass- and space-value models~\cite{spearman2017physics,spearman2018beyond}
+and the space-occupation line of Fern\'andez \& Bornn~\cite{fernandez2018wide} are the field's
+standard interpretable models of who controls space toward the ball.
+\textbf{VLM spatial reasoning.} Frontier VLMs~\cite{achiam2023gpt4} are documented to fail
+fine spatial relations (What'sUp~\cite{kamath2023whatsup}, BLINK~\cite{fu2024blink}) and
+sports understanding (SPORTU~\cite{xia2025sportu}); our differentiator is the counterfactual
+object-removed condition plus camera de-biasing, attributing failure to inference rather than
+perception or dataset priors. \textbf{Method building blocks.} Player/ball tracks from
+SoccerNet-Tracking~\cite{cioppa2022soccernet}, Metrica~\cite{metrica2020},
+SkillCorner~\cite{skillcorner2020}, NBA SportVU~\cite{sportvu2016} (ball as target only); a
+permutation-invariant Deep Set~\cite{zaheer2017deepsets}; a mixture-density
+head~\cite{bishop1994mdn}; persistent homology~\cite{ripser2021} features (which add nothing
+over plain geometry).
 
 \section{Task, Data, and Method}
 \textbf{Task.} Given players (image or field coordinates, with velocities) at one instant,
@@ -61,9 +74,10 @@ weighted) player centroid (B1).
 On the de-biased set ($n=260$: 80 near / 60 mid / 120 far), we prompt current frontier
 VLMs to output ball coordinates on the LaMa-inpainted image. The decisive bin is
 \emph{far}: off-center balls where the camera-center baseline (error $0.362$) is weak.
-No current VLM reliably beats that baseline there. GPT-5.4 is
-at chance (win-rate $52\%$, CI $[43,62]$); Llama-4-Maverick is \emph{below} it
-($34\%$, CI $[25,42]$; Fig.~\ref{fig:vlm}). Predicted--ground-truth correlation in the
+No current VLM reliably beats that baseline there. By win-rate (the fraction of items whose
+prediction is closer to the ball than the frame centre), GPT-5.4 is no better than chance
+($52\%$, CI $[43,62]$) and Llama-4-Maverick is \emph{below} it ($34\%$, CI $[25,42]$;
+Fig.~\ref{fig:vlm}). On median error GPT-5.4 only ties the baseline ($0.354$ vs.\ $0.362$). Predicted--ground-truth correlation in the
 far bin is weak (GPT-5.4 $r_y=0.29$; Llama-4 $r_y=0.07$). VLMs post good medians only on
 near-center items, where the camera has already done the work.
 
@@ -101,7 +115,8 @@ Removing the velocity channel costs $0.035\pm0.002$ in median error and hurts in
 \textbf{12/12} matches (Fig.~\ref{fig:mech}). Splitting by ball speed, error is highest for the \emph{settled}
 ball ($<2$\,m/s), and velocity's contribution collapses when the ball is still
 ($+0.016$ vs.\ $+0.041$ moving; less-when-still in 12/12). The worst still balls sit
-centrally, far from the player mass (coupling--error correlation $+0.53$ to $+0.65$): a
+centrally, far from the player mass (coupling---the ball's distance to the velocity-weighted
+player centroid---correlates with error, $+0.53$ to $+0.65$): a
 dead ball no one is near or moving toward is undetermined. In flight, the ball's
 \emph{direction} of travel is readable from players well above chance
 ($45^\circ$ median vs.\ $90^\circ$).

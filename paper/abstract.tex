@@ -1,10 +1,11 @@
-We study a deliberately narrow spatial-inference task: locate a \emph{hidden} ball from
-the configuration of the players alone, the way a spectator infers where play is headed.
-On a de-biased benchmark of broadcast frames with the ball inpainted away ($n=260$), no
-current frontier vision--language model (GPT-5.4, Llama-4-Maverick) reliably beats a
-camera-center baseline on off-center balls---GPT-5.4 is at chance, Llama-4 below it. A
-permutation-invariant network of $\sim$14k parameters ($\sim$60\,kB), trained only on
-player positions and velocities, cracks the same off-center cases. We then open this
+Frontier vision--language models cannot locate a ball they cannot see; a tiny model can.
+We probe this with a deliberately narrow task: infer a \emph{hidden} ball's position from
+the players alone, the way a spectator does. On a de-biased benchmark of broadcast frames
+with the ball inpainted away ($n=260$), no current frontier VLM (GPT-5.4, Llama-4-Maverick)
+reliably beats a camera-center baseline on off-center balls---GPT-5.4 is no better than
+chance by win-rate, Llama-4 below it. A permutation-invariant network of $\sim$14k
+parameters ($\sim$60\,kB), trained only on player positions and velocities, cracks the same
+off-center cases. We then open this
 specialist. Across \textbf{12 matches from two leagues} (250k frames, leave-one-match-out),
 eleven interpretable geometric features fed to a gradient-boosted tree recover 91\% of a
 tuned deep specialist's gain over the baseline, and a single feature---the
