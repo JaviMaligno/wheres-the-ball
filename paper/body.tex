@@ -40,10 +40,12 @@ of pitch control: Spearman's pass- and space-value models~\cite{spearman2017phys
 and the space-occupation line of Fern\'andez \& Bornn~\cite{fernandez2018wide} are the field's
 standard interpretable models of who controls space toward the ball.
 \textbf{VLM spatial reasoning.} Frontier VLMs~\cite{achiam2023gpt4} are documented to fail
-fine spatial relations (What'sUp~\cite{kamath2023whatsup}, BLINK~\cite{fu2024blink}) and
-sports understanding (SPORTU~\cite{xia2025sportu}); our differentiator is the counterfactual
-object-removed condition plus camera de-biasing, attributing failure to inference rather than
-perception or dataset priors. \textbf{Method building blocks.} Player/ball tracks from
+fine spatial relations (What'sUp~\cite{kamath2023whatsup}, BLINK~\cite{fu2024blink}) and, in
+sports, both understanding (SPORTU~\cite{xia2025sportu}) and visual grounding---SoccerLens
+~\cite{elsharkawi2026soccerlens} finds soccer VLMs stay below $50\%$ grounding, drifting to
+spurious regions. Those benchmarks ask whether a model attends to the right pixels; we
+instead \emph{remove} the object and de-bias the camera, so the task measures spatial
+\emph{inference} from configuration rather than perception or dataset priors. \textbf{Method building blocks.} Player/ball tracks from
 SoccerNet-Tracking~\cite{cioppa2022soccernet}, Metrica~\cite{metrica2020},
 SkillCorner~\cite{skillcorner2020}, NBA SportVU~\cite{sportvu2016} (ball as target only); a
 permutation-invariant Deep Set~\cite{zaheer2017deepsets}; a mixture-density
