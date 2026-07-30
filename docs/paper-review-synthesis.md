@@ -71,7 +71,10 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
   (GPT slightly *beats* center on median). Reframe honestly / acknowledge underpower (far n=120).
 - **M5. DONE (2026-07-30).** Direction @ 12-match LOMO: **32°** median angular error (vs 90° chance),
   **61%** within a 45° cone, 12/12 — stronger than the n=2 result (45°/50%). §4.3 updated.
-- **M6.** Add **pitch control** as a run, cited geometric baseline (the field's standard "space toward ball"). [local]
+- **M6. DONE (2026-07-30).** `paper_pitch_control.py`: Spearman-style time-to-arrive control surface,
+  ball predicted at max control-contention. Pitch control **0.186±0.010** beats the naive centroid
+  (0.213) 12/12 but the learned geometry (0.099) is 2× better — so the learned model beats the
+  discipline's standard physical model, not a strawman. Added as the 2nd bar in Fig 2 + §4.2.
 - **M7.** Differentiate the VLM half against the 2024–26 sports-VLM benchmarks (SPORTU, SoccerLens,
   "Stepping VLMs onto the Court", SportD) — the counterfactual + camera-debias is the novel axis.
 - **M8.** Venue spine: keep at CVsports, **lead with the tracking/geometry half**, VLM half as contrast.

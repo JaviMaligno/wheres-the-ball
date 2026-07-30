@@ -52,15 +52,22 @@ ax.set_title("A tiny trained model beats the camera on off-center balls; VLMs do
 fig.savefig(FIG / "fig1_vlm.pdf"); fig.savefig(FIG / "fig1_vlm.png"); plt.close(fig)
 print("wrote fig1_vlm")
 
-# ---- fig2: centroid / tuned deep / geometry across 12 matches (mean ± std) ----
+# ---- fig2: centroid / pitch control / geometry / tuned deep across 12 matches (mean ± std) ----
 # deep is the TUNED multi-seed DeepSets (paper_deep_tuned.json), not the old lightly-trained one.
 tuned = json.loads((N3 / "paper_deep_tuned.json").read_text())
+pc = json.loads((N3 / "paper_pitch_control.json").read_text())
 cen = np.array([r["centroid"] for r in tuned]); deep = np.array([r["deep_tuned"] for r in tuned])
 geo = np.array([r["geo"] for r in tuned])
 recovery = np.array([r["recovery"] for r in tuned])
-fig, ax = plt.subplots(figsize=(6.0, 3.6))
-vals = [("Centroid\n(untrained)", cen, GRAPHITE), ("Tuned Deep Sets\n(black box)", deep, AMBER),
-        ("Interpretable\ngeometry", geo, TEAL)]
+pcm, pcs = pc["pitch_control"], pc["pitch_control_std"]
+fig, ax = plt.subplots(figsize=(7.0, 3.7))
+# ascending skill: naive centroid -> pitch control (physical) -> learned geometry -> deep
+class _V:  # tiny holder so mean()/std() work uniformly with the pitch-control scalar
+    def __init__(s, m, sd): s.m, s.sd = m, sd
+    def mean(s): return s.m
+    def std(s): return s.sd
+vals = [("Centroid\n(naive)", cen, GRAPHITE), ("Pitch control\n(Spearman)", _V(pcm, pcs), "#8a94a0"),
+        ("Interpretable\ngeometry", geo, TEAL), ("Tuned Deep Sets\n(black box)", deep, AMBER)]
 x = np.arange(len(vals))
 ax.bar(x, [v.mean() for _, v, _ in vals], 0.55, color=[c for _, _, c in vals],
        edgecolor="white", yerr=[v.std() for _, v, _ in vals], capsize=5, error_kw={"ecolor": "#333", "lw": 1.2})
