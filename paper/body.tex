@@ -172,9 +172,22 @@ advance (topology must beat the geometry model).
 \section{Discussion and Limitations}
 The capability frontier VLMs lack here is narrow and identifiable---reading collective
 motion---and it is cheap: a 60\,kB set function learns it, and it reduces to a
-velocity-weighted centroid. Limitations: the tracking side uses ground-truth positions
-(an information ceiling); the VLM benchmark is a focused $n$ with bootstrap CIs; results
-are on open datasets from a handful of leagues.
+velocity-weighted centroid. Limitations: the field-space specialist and image-space
+specialist use ground-truth player positions (an information ceiling), and the specialist
+vs.\ VLM head-to-head (Fig.~\ref{fig:vlm}) shares items and input but the specialist is
+still handed clean positions; the VLM benchmark is a focused $n$ with bootstrap CIs, and
+two of the models (Azure-hosted GPT-5.4, Llama-4-Maverick) are versioned snapshots whose
+behaviour drifts, so ``no current VLM beats the baseline'' is a dated claim, not a general
+one. In the far bin, ``off-center ball'' is partly entangled with unusual (transition/wide)
+camera framing. Learned models are single-architecture; the reported $\pm$ is inter-match,
+with inter-seed variance separately small ($\le0.002$). The Claude Opus 4.8 / Sonnet 4.6
+runs were incomplete (API-credit limited) and are excluded from the headline comparison.
+
+\paragraph{Data and reproducibility.} Code, feature definitions, and the pinned inpainting
+pipeline are released. Player/ball tracks come from SoccerNet-Tracking, Metrica, and
+SkillCorner (each under its own research/non-commercial terms) and the NBA SportVU logs
+(no explicit license; used for research only, not redistributed---we release scripts, not
+data). The task uses the ball solely as a prediction target.
 
 \section{Conclusion}
 A hidden ball is found through motion. Frontier models have the intuition faintly and
