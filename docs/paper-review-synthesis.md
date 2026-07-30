@@ -66,7 +66,7 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
 
 - **M1.** Abstract: lead with the result (VLMs fail, 60 kB model succeeds), not the throat-clearing setup.
 - **M2.** Define inline: *coupling*, *leak control*, *win-rate*, the transfer *ratio*.
-- **M3.** §4.4–4.6 need a table or figure (the calibration finding deserves a Fig 4 more than the vel ablation).
+- **M3. DONE (2026-07-30).** Added an overview Table 1 at the top of Results summarizing all six findings (skimmable second half). Chose table over extra figure per Javier.
 - **M4.** "GPT at chance" is failure-to-reject dressed as finding; its far **median 0.354 < center 0.363**
   (GPT slightly *beats* center on median). Reframe honestly / acknowledge underpower (far n=120).
 - **M5. DONE (2026-07-30).** Direction @ 12-match LOMO: **32°** median angular error (vs 90° chance),
@@ -77,7 +77,7 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
   discipline's standard physical model, not a strawman. Added as the 2nd bar in Fig 2 + §4.2.
 - **M7.** Differentiate the VLM half against the 2024–26 sports-VLM benchmarks (SPORTU, SoccerLens,
   "Stepping VLMs onto the Court", SportD) — the counterfactual + camera-debias is the novel axis.
-- **M8.** Venue spine: keep at CVsports, **lead with the tracking/geometry half**, VLM half as contrast.
+- **M8. DECIDED: leave the current balance.** No concrete gain from restructuring now; the current spine (VLMs fail -> specialist -> geometry -> transfer -> calibration) is coherent for CVsports; venue-optimization deferred to submission.
 - **M9.** Add code/data-availability + ethics statements; per-dataset license nuance (SportVU = no
   explicit license, research-only, scripts-not-data; SoccerNet/Metrica/SkillCorner each their own terms).
 - **M10.** Multi-seed for learned models (DeepSets, MDN); state plotted ±std is inter-match, not inter-seed.
@@ -88,7 +88,7 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
 
 ## MINORS
 
-- Title "60-Kilobyte" reads blog-ish; params are ~12.9k / ~51.7 kB (not 14k/60 kB) — round down or be exact.
+- Title/params DONE: honest "50-Kilobyte" + ~13k params / ~50 kB in title/abstract/body.
 - Terminology: unify Deep Sets / specialist / black box; keep *still* (speed) vs *off-center/loose*
   (distance-to-mass) as **two distinct axes** (§4.3 is still-axis, §4.5 is off-center-axis).
 - Drop "pre-registered" for the TDA rule (no timestamped registration) or register it.

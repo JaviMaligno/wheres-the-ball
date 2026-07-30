@@ -63,12 +63,31 @@ SoccerNet-Tracking test and train splits with a per-clip cap.
 (basketball) give ground-truth player and ball tracks; per-player features are
 $(x,y,v_x,v_y,\text{team})$ over a 1\,s window.
 \textbf{Models.} (i) frontier VLMs (GPT, Claude family) prompted to output ball
-coordinates on the inpainted image; (ii) a Deep Sets specialist ($\sim$14k params); (iii)
+coordinates on the inpainted image; (ii) a Deep Sets specialist ($\sim$13k params, $\sim$50\,kB); (iii)
 an interpretable model: eleven named geometric features + gradient-boosted trees; (iv)
 a mixture-density head for uncertainty. Baselines: frame center (B0) and the (velocity-
 weighted) player centroid (B1).
 
 \section{Results}
+Table~\ref{tab:overview} summarizes the six findings; each is detailed below.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{@{}p{0.30\linewidth}p{0.62\linewidth}@{}}
+\toprule
+Finding & Key result (12 matches / $n{=}260$) \\
+\midrule
+VLMs vs.\ specialist (far) & specialist wins $68\%$ vs.\ camera; GPT-5.4 $52\%$, Llama-4 $34\%$ \\
+Geometry $\approx$ deep & geo $0.099$ recovers $91\%$ of tuned deep $0.087$; $>$ pitch control $0.186$, centroid $0.213$ \\
+Signal is motion & removing velocity costs $0.035$, 12/12 \\
+Stillness blind spot & still ball hardest; velocity useless when still (12/12); in-flight direction $32^\circ$ \\
+Cross-sport transfer & deep asymmetric ($0.32$/$0.21$), geo symmetric; asymmetry in the velocity channel \\
+Calibration & globally calibrated ($r{=}{+}0.20$) but over-confident on loose balls \\
+Topology & adds nothing over geometry ($0.258$ vs.\ $0.111$) \\
+\bottomrule
+\end{tabular}
+\caption{Overview of results.}
+\label{tab:overview}
+\end{table}
 
 \subsection{Frontier VLMs do not solve the off-center cases}
 On the de-biased set ($n=260$: 80 near / 60 mid / 120 far), we prompt current frontier
@@ -176,7 +195,7 @@ advance (topology must beat the geometry model).
 
 \section{Discussion and Limitations}
 The capability frontier VLMs lack here is narrow and identifiable---reading collective
-motion---and it is cheap: a 60\,kB set function learns it, and it reduces to a
+motion---and it is cheap: a 50\,kB set function learns it, and it reduces to a
 velocity-weighted centroid. Limitations: the field-space specialist and image-space
 specialist use ground-truth player positions (an information ceiling), and the specialist
 vs.\ VLM head-to-head (Fig.~\ref{fig:vlm}) shares items and input but the specialist is
