@@ -26,11 +26,14 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
   never competed on the same items/input (specialist = field GT tracks; VLMs = SoccerNet pixels).
   Run a head-to-head on a shared set: geometry model on the n=260 `players` field, and/or VLMs on
   the same 1s tracks (`nivel1_vlm_tracks.py` exists). [local ~$0 for specialist; VLM-on-tracks adds API $]
-- **B4. Cross-sport transfer: one protocol, one metric.** Deep transfer (0.196/0.395) uses random
-  80/20 (leakage-prone: adjacent frames in train+test); geo uses LOMO. And "0.52→0.09" is
-  untraceable (deep-check ratio 0.52→0.09; geo `asym_ratio` −0.75→−0.08; decompose 0.16→0.09 —
-  three different pairs). Rerun deep transfer under LOMO, pick ONE asymmetry metric, report both
-  models on it, state which model each number is. [local, multi-seed, ~$0, ~1h]
+- **B4. DONE (2026-07-30).** `paper_transfer_unified.py`: same LOMO protocol + same ratio metric,
+  tuned multi-seed deep + geo, full vs pos-only. Clean absolute: deep s→b 0.319 / b→s 0.210
+  (asymmetric); geo 0.221 / 0.217 (symmetric) → asymmetry is a deep-representation property. The
+  leaky random split had exaggerated the gap (0.196/0.395 → 0.210/0.319). Velocity channel carries
+  it: removing velocity halves the deep gap (0.109→0.056 abs; ratio −0.23→−0.07) and flattens geo
+  (−0.75→−0.08). §4.4 rewritten with traceable clean-protocol numbers; dropped the untraceable
+  "0.52→0.09". Honest note: the transfer-asymmetry headline is SMALLER than Part 2 claimed (leakage);
+  the mechanism (velocity) + geo-symmetric/deep-asymmetric contrast survive. Compiles clean.
 - **B5. DONE (2026-07-29).** Ran the VLM leak check on all 260 items (0 errors). Flag rate
   **33/260 = 12.7%** (ball or artifact judged visible). Re-ran the far-bin comparison excluding
   flagged items — **headline robust**: GPT far 52%→54% (median 0.354→0.345), Llama 34%→32%

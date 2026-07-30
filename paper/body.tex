@@ -116,15 +116,20 @@ is smaller when still in 12/12 matches.}
 \end{figure}
 
 \subsection{Cross-sport transfer and the velocity-scale mechanism}
-Trained on one sport and tested zero-shot on the other (12 soccer matches, 250k frames;
-6 basketball games, 231k frames), the Deep Sets transfers asymmetrically---basketball$\rightarrow$soccer
-$0.196$ vs.\ soccer$\rightarrow$basketball $0.395$. The asymmetry lives in the velocity
-channel: in ratio over in-domain difficulty it shrinks from $0.52$ (full) to $0.09$
-(positions only). A basketball court is $\sim$1/16 the area of a pitch ($\sim$4$\times$
-shorter linearly), so in normalized coordinates velocities differ 3--4$\times$; the
-learned use of velocity is scale-bound and does not cross, while scale-free positions do. The interpretable geometry model, which rescales a
-single velocity feature, transfers near-symmetrically---the asymmetry is a property of the
-distributed representation.
+Trained on one sport and tested zero-shot on the other under the same
+leave-one-match-out protocol as in-domain (12 soccer matches, 250k frames; 6 basketball
+games, 231k frames; tuned Deep Sets, 3 seeds), transfer is imperfect both ways. In
+absolute error the Deep Sets transfers \emph{asymmetrically}---basketball$\rightarrow$soccer
+$0.210$ vs.\ soccer$\rightarrow$basketball $0.319$---while the interpretable geometry model
+transfers \emph{symmetrically} ($0.221$ vs.\ $0.217$), so the asymmetry is a property of the
+distributed representation, not of the task. (A leakage-prone random split had exaggerated
+the gap to $0.196$ vs.\ $0.395$; the clean protocol narrows it.) The Deep Sets' asymmetry
+lives in the velocity channel: removing velocity roughly halves the directional gap
+(absolute $0.109\rightarrow0.056$; penalty-ratio asymmetry $-0.23\rightarrow-0.07$), and does
+the same for the geometry model ($-0.75\rightarrow-0.08$). A basketball court is $\sim$1/16
+the area of a pitch ($\sim$4$\times$ shorter linearly), so in normalized coordinates
+velocities differ 3--4$\times$; the learned use of velocity is scale-bound and does not
+cross, while scale-free positions do.
 
 \subsection{Calibration and the blind spot}
 A mixture-density head is globally calibrated (declared uncertainty tracks error,
