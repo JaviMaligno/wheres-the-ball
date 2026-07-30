@@ -79,14 +79,19 @@ prediction is closer to the ball than the frame centre), GPT-5.4 is no better th
 ($52\%$, CI $[43,62]$) and Llama-4-Maverick is \emph{below} it ($34\%$, CI $[25,42]$;
 Fig.~\ref{fig:vlm}). On median error GPT-5.4 only ties the baseline ($0.354$ vs.\ $0.362$). Predicted--ground-truth correlation in the
 far bin is weak (GPT-5.4 $r_y=0.29$; Llama-4 $r_y=0.07$). VLMs post good medians only on
-near-center items, where the camera has already done the work.
+near-center items, where the camera has already done the work. As a head-to-head on the
+\emph{same} far items and the same input (player positions), a small specialist trained by
+5-fold cross-validation wins $68\%$ (CI $[59,76]$, median $0.289$)---clearing the baseline
+the VLMs cannot (Fig.~\ref{fig:vlm}); an image-space player centroid manages only $16\%$,
+so the specialist is not merely following the crowd.
 
 \begin{figure}[t]\centering
 \includegraphics[width=\figw]{figures/fig1_vlm.pdf}
-\caption{Far bin ($n=120$; Llama-4 $n=118$), off-center balls, 95\% bootstrap CIs. No current frontier
-VLM beats the camera-center baseline (dashed): GPT-5.4 is at chance, Llama-4-Maverick
-below it. The trained specialist (\S4.2) beats it. Claude Opus 4.8 / Sonnet 4.6 runs
-were partial (API-credit limited, few far items) and omitted from the far comparison.}
+\caption{Off-center (far) balls, same $n=120$ items (Llama-4 $n=118$), 95\% bootstrap CIs.
+A positions-only specialist trained on these items (5-fold CV) beats the camera-center
+baseline (dashed); no current frontier VLM does---GPT-5.4 no better than chance by win-rate,
+Llama-4-Maverick below it. Claude Opus 4.8 / Sonnet 4.6 runs were partial (API-credit
+limited, few far items) and omitted here.}
 \label{fig:vlm}
 \end{figure}
 
@@ -118,8 +123,12 @@ ball ($<2$\,m/s), and velocity's contribution collapses when the ball is still
 centrally, far from the player mass (coupling---the ball's distance to the velocity-weighted
 player centroid---correlates with error, $+0.53$ to $+0.65$): a
 dead ball no one is near or moving toward is undetermined. In flight, the ball's
-\emph{direction} of travel is readable from players well above chance
-($45^\circ$ median vs.\ $90^\circ$).
+\emph{direction} of travel is readable from players well above chance (leave-one-match-out
+over the 12 matches: $32^\circ$ median angular error vs.\ $90^\circ$ chance; $61\%$ of fast
+balls pinned within a $45^\circ$ cone, 12/12). A label-shuffle control confirms the geometry
+model's skill is genuine inference, not marginal-distribution structure: training on
+frame--ball pairs with the ball drawn from a random other frame yields $0.403$ error, far
+worse than the real $0.099$ (and than the centroid's $0.213$), in 12/12 matches.
 
 \begin{figure}[t]\centering
 \includegraphics[width=\figw]{figures/fig3_mechanism.pdf}

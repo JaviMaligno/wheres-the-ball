@@ -24,28 +24,31 @@ TEAL, AMBER, GRAPHITE, RED = "#0f9b8e", "#e8973a", "#3a4149", "#c0392b"
 plt.rcParams.update({"font.size": 11, "figure.dpi": 150, "axes.grid": True,
                      "grid.alpha": 0.25, "axes.axisbelow": True, "savefig.bbox": "tight"})
 
-# ---- fig1: VLMs vs camera-center baseline in the far bin ----
+# ---- fig1: trained specialist vs VLMs vs camera-center, same far items ----
 vlm = json.loads((F1 / "paper_vlm_benchmark.json").read_text())
-fig, ax = plt.subplots(figsize=(6.4, 3.6))
-rows = [("GPT-5.4", "gpt"), ("Llama-4-\nMaverick", "llama4")]
-labels, wins, los, his = [], [], [], []
-for name, key in rows:
+bridge = json.loads((F1 / "paper_bridge.json").read_text())
+fig, ax = plt.subplots(figsize=(6.8, 3.7))
+# specialist first (the trained head-to-head from B3), then the VLMs
+sp_lo = (bridge["specialist_far_win"] * 100 - bridge["specialist_far_win_ci"][0])
+sp_hi = (bridge["specialist_far_win_ci"][1] - bridge["specialist_far_win"] * 100)
+bars = [("Specialist\n(trained)", bridge["specialist_far_win"] * 100, sp_lo, sp_hi, TEAL)]
+for name, key in [("GPT-5.4", "gpt"), ("Llama-4-\nMaverick", "llama4")]:
     far = vlm.get(key, {}).get("far")
-    if not far:
-        continue
-    labels.append(name); wins.append(far["win"] * 100)
-    los.append((far["win"] - far["win_ci"][0]) * 100); his.append((far["win_ci"][1] - far["win"]) * 100)
-x = np.arange(len(labels))
-ax.bar(x, wins, 0.5, color=[GRAPHITE, AMBER][:len(labels)], edgecolor="white",
-       yerr=[los, his], capsize=5, error_kw={"ecolor": "#333", "lw": 1.2})
+    if far:
+        bars.append((name, far["win"] * 100, (far["win"] - far["win_ci"][0]) * 100,
+                     (far["win_ci"][1] - far["win"]) * 100, GRAPHITE))
+x = np.arange(len(bars))
+ax.bar(x, [b[1] for b in bars], 0.55, color=[b[4] for b in bars], edgecolor="white",
+       yerr=[[b[2] for b in bars], [b[3] for b in bars]], capsize=5, error_kw={"ecolor": "#333", "lw": 1.2})
 ax.axhline(50, color=RED, ls="--", lw=1.6)
-ax.text(len(labels) - 0.5, 51.5, "chance / camera-center", color=RED, fontsize=9, ha="right")
-for xi, w in zip(x, wins):
-    ax.text(xi, w + 4, f"{w:.0f}%", ha="center", fontweight="bold", color="#333")
-ax.set_xticks(x); ax.set_xticklabels(labels)
-ax.set_ylabel("win-rate vs camera center\n(off-center balls)")
-ax.set_ylim(0, 75)
-ax.set_title("No current frontier VLM beats the camera on off-center balls", fontsize=11.5, fontweight="bold")
+ax.text(len(bars) - 0.5, 51.5, "chance / camera-center", color=RED, fontsize=9, ha="right")
+for xi, b in zip(x, bars):
+    ax.text(xi, b[1] + b[3] + 2.5, f"{b[1]:.0f}%", ha="center", fontweight="bold", color="#333")
+ax.set_xticks(x); ax.set_xticklabels([b[0] for b in bars])
+ax.set_ylabel("win-rate vs camera center\n(off-center balls, same items)")
+ax.set_ylim(0, 85)
+ax.set_title("A tiny trained model beats the camera on off-center balls; VLMs don't",
+             fontsize=11, fontweight="bold")
 fig.savefig(FIG / "fig1_vlm.pdf"); fig.savefig(FIG / "fig1_vlm.png"); plt.close(fig)
 print("wrote fig1_vlm")
 

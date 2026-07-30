@@ -22,10 +22,12 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
   stable, also closes M10 for the deep) beats geo 0.099 in 12/12. **Corrected recovery = 91%±3%**
   (was the strawman 132%). Fig 2 regenerated + §4.2/caption/abstract rewritten to the honest
   "geometry recovers 91% of a tuned deep model; deep keeps a small edge" framing. Compiles clean.
-- **B3. Measure the VLM↔specialist bridge.** Fig 1 implies the specialist beats the VLMs but they
-  never competed on the same items/input (specialist = field GT tracks; VLMs = SoccerNet pixels).
-  Run a head-to-head on a shared set: geometry model on the n=260 `players` field, and/or VLMs on
-  the same 1s tracks (`nivel1_vlm_tracks.py` exists). [local ~$0 for specialist; VLM-on-tracks adds API $]
+- **B3. DONE (2026-07-30).** `paper_bridge.py`: trained a positions-only specialist (5-fold CV) on
+  the SAME 260 image-space items the VLMs saw. FAR bin head-to-head: **specialist 68% [59,76]** win
+  vs camera (median 0.289) > GPT 52% (0.354) > Opus 56%/n=16 > Llama 34% (0.454) > image-centroid
+  16%. A tiny trained model on the same input (player positions, no velocity, single frame) beats
+  the camera baseline where VLMs don't — the bridge is now MEASURED on a shared set, not asserted.
+  → add specialist bar to Fig 1 + rewrite the caption's "beats it".
 - **B4. DONE (2026-07-30).** `paper_transfer_unified.py`: same LOMO protocol + same ratio metric,
   tuned multi-seed deep + geo, full vs pos-only. Clean absolute: deep s→b 0.319 / b→s 0.210
   (asymmetric); geo 0.221 / 0.217 (symmetric) → asymmetry is a deep-representation property. The
@@ -67,8 +69,8 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
 - **M3.** §4.4–4.6 need a table or figure (the calibration finding deserves a Fig 4 more than the vel ablation).
 - **M4.** "GPT at chance" is failure-to-reject dressed as finding; its far **median 0.354 < center 0.363**
   (GPT slightly *beats* center on median). Reframe honestly / acknowledge underpower (far n=120).
-- **M5.** Direction result is **n=2** (g1↔g2) and ~coin-flip (within-45°=50%); run it on the 12 matches
-  or soften. [local ~$0]
+- **M5. DONE (2026-07-30).** Direction @ 12-match LOMO: **32°** median angular error (vs 90° chance),
+  **61%** within a 45° cone, 12/12 — stronger than the n=2 result (45°/50%). §4.3 updated.
 - **M6.** Add **pitch control** as a run, cited geometric baseline (the field's standard "space toward ball"). [local]
 - **M7.** Differentiate the VLM half against the 2024–26 sports-VLM benchmarks (SPORTU, SoccerLens,
   "Stepping VLMs onto the Court", SportD) — the counterfactual + camera-debias is the novel axis.
@@ -77,8 +79,8 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
   explicit license, research-only, scripts-not-data; SoccerNet/Metrica/SkillCorner each their own terms).
 - **M10.** Multi-seed for learned models (DeepSets, MDN); state plotted ±std is inter-match, not inter-seed.
   [folds into B2/B4]
-- **M11.** De-biasing is reweighting, not a causal control; add a permutation / label-shuffle control
-  (predict a random other frame's ball) to bound residual structure. [local ~$0]
+- **M11. DONE (2026-07-30).** Label-shuffle control: shuffled-target 0.403 vs real 0.099 (worse than
+  centroid 0.213), real wins 12/12 — skill is genuine inference, not marginal structure. §4.3 updated.
 - **M12.** Broadcast-camera confound: "off-center ball" entangled with "unusual framing" in the far bin — acknowledge.
 
 ## MINORS
