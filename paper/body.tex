@@ -15,7 +15,7 @@ Our contributions:
 \begin{itemize}
   \item A \textbf{de-biased benchmark} ($n=260$) on SoccerNet-Tracking broadcast frames
   with the ball removed by LaMa inpainting~\cite{suvorov2022lama} and a leak control (a VLM
-  check confirming the inpainted ball is not recoverable from the image),
+  flags residual ball/artifact cues; $12.7\%$ of items, which we can exclude),
   balancing ball position to neutralize the ball-following camera. None of four current
   frontier VLMs (GPT-5.4, Claude Opus 4.8, Sonnet 4.6, Llama-4-Maverick) beats a
   camera-center baseline on off-center balls.
@@ -79,11 +79,11 @@ Table~\ref{tab:overview} summarizes the six findings; each is detailed below.
 \toprule
 Finding & Key result (12 matches / $n{=}260$) \\
 \midrule
-VLMs vs.\ specialist (far) & specialist wins $68\%$ vs.\ camera; all 4 frontier VLMs $\le52\%$ (GPT-5.4 $52$, Opus $44$, Sonnet $36$, Llama-4 $34$) \\
+VLMs vs.\ specialist (far) & specialist wins $68\%$ vs.\ camera; no VLM clears chance (GPT-5.4 $52$, Opus $44$, Sonnet $36$, Llama-4 $34$) \\
 Geometry $\approx$ deep & geo $0.099$ recovers $91\%$ of tuned deep $0.087$; $>$ pitch control $0.186$, centroid $0.213$ \\
 Signal is motion & removing velocity costs $0.035$, 12/12 \\
 Stillness blind spot & still ball hardest; velocity useless when still (12/12); in-flight direction $32^\circ$ \\
-Cross-sport transfer & deep asymmetric ($0.32$/$0.21$), geo symmetric; asymmetry in the velocity channel \\
+Cross-sport transfer & deep asymmetric (s$\to$b $0.32$, b$\to$s $0.21$), geo symmetric; asymmetry in the velocity channel \\
 Calibration & globally calibrated ($r{=}{+}0.20$) but over-confident on loose balls \\
 Topology & adds nothing over geometry ($0.258$ vs.\ $0.111$) \\
 \bottomrule
@@ -97,12 +97,15 @@ On the de-biased set ($n=260$: 80 near / 60 mid / 120 far), we prompt current fr
 VLMs to output ball coordinates on the LaMa-inpainted image. The decisive bin is
 \emph{far}: off-center balls where the camera-center baseline (error $0.362$) is weak.
 None of the four current frontier VLMs reliably beats that baseline there. By win-rate (the
-fraction of items whose prediction is closer to the ball than the frame centre) all sit at or
-below chance: GPT-5.4 $52\%$ (CI $[43,62]$), Claude Opus 4.8 $44\%$ ($[35,53]$), Claude
-Sonnet 4.6 $36\%$ ($[28,45]$), Llama-4-Maverick $34\%$ ($[25,42]$; Fig.~\ref{fig:vlm}). Even
-GPT-5.4, the strongest, only ties the baseline on median error ($0.354$ vs.\ $0.362$), and
-far-bin correlation with the truth is weak ($r_y\le0.29$). VLMs post good medians only on
-near-center items, where the camera has already done the work. As a head-to-head on the
+fraction of items whose prediction is closer to the ball than the frame centre) none clears
+it: GPT-5.4 $52\%$ (CI $[43,62]$) and Claude Opus 4.8 $44\%$ ($[35,53]$) are indistinguishable
+from chance, while Claude Sonnet 4.6 $36\%$ ($[28,45]$) and Llama-4-Maverick $34\%$ ($[25,42]$;
+Fig.~\ref{fig:vlm}) are significantly below it. Even GPT-5.4, the strongest, only ties the
+baseline on median error ($0.354$ vs.\ $0.362$), and far-bin correlation with the truth is
+weak ($r_y\le0.29$). VLMs post good medians only on near-center items, where the camera has
+already done the work. The result is not an inpainting artifact: the leak control flags
+$12.7\%$ of items with residual ball/artifact cues, and excluding them leaves the far-bin
+win-rates essentially unchanged (GPT $54\%$, Opus $42\%$, Sonnet $34\%$, Llama $32\%$). As a head-to-head on the
 \emph{same} far items and the same input (player positions), a small specialist trained by
 5-fold cross-validation wins $68\%$ (CI $[59,76]$, median $0.289$)---clearing the baseline
 the VLMs cannot (Fig.~\ref{fig:vlm}); an image-space player centroid manages only $16\%$,
@@ -145,12 +148,12 @@ legible geometric quantity, chiefly the velocity-weighted centroid.}
 
 \subsection{The signal is collective motion; stillness is the blind spot}
 Removing the velocity channel costs $0.035\pm0.002$ in median error and hurts in
-\textbf{12/12} matches (Fig.~\ref{fig:mech}). Splitting by ball speed, error is highest for the \emph{settled}
-ball ($<2$\,m/s), and velocity's contribution collapses when the ball is still
+\textbf{12/12} matches (Fig.~\ref{fig:mech}). Splitting by ball speed, error is highest for the
+\emph{still} ball ($<2$\,m/s), and velocity's contribution collapses there
 ($+0.016$ vs.\ $+0.041$ moving; less-when-still in 12/12). The worst still balls sit
 centrally, far from the player mass (coupling---the ball's distance to the velocity-weighted
-player centroid---correlates with error, $+0.53$ to $+0.65$): a
-dead ball no one is near or moving toward is undetermined. In flight, the ball's
+player centroid---correlates with error, $+0.53$ to $+0.65$): a still ball no one is near or
+moving toward is undetermined. In flight, the ball's
 \emph{direction} of travel is readable from players well above chance (leave-one-match-out
 over the 12 matches: $32^\circ$ median angular error vs.\ $90^\circ$ chance; $61\%$ of fast
 balls pinned within a $45^\circ$ cone, 12/12). A label-shuffle control confirms the geometry
@@ -174,11 +177,13 @@ games, 231k frames; tuned Deep Sets, 3 seeds), transfer is imperfect both ways. 
 absolute error the Deep Sets transfers \emph{asymmetrically}---basketball$\rightarrow$soccer
 $0.210$ vs.\ soccer$\rightarrow$basketball $0.319$---while the interpretable geometry model
 transfers \emph{symmetrically} ($0.221$ vs.\ $0.217$), so the asymmetry is a property of the
-distributed representation, not of the task. (A leakage-prone random split had exaggerated
-the gap to $0.196$ vs.\ $0.395$; the clean protocol narrows it.) The Deep Sets' asymmetry
-lives in the velocity channel: removing velocity roughly halves the directional gap
-(absolute $0.109\rightarrow0.056$; penalty-ratio asymmetry $-0.23\rightarrow-0.07$), and does
-the same for the geometry model ($-0.75\rightarrow-0.08$). A basketball court is $\sim$1/16
+distributed representation, not of the task.\footnote{A leakage-prone random split (adjacent
+frames of a match in both train and test) had exaggerated the deep gap to $0.196$ vs.\ $0.395$;
+the clean leave-one-match-out protocol narrows it.} The Deep Sets' asymmetry lives in the
+velocity channel: removing velocity roughly halves the directional gap (absolute
+$0.109\rightarrow0.056$), and flattens the asymmetry for both models on a penalty-ratio metric
+(zero-shot error over in-domain error, differenced across directions, so $0$ is symmetric):
+deep $-0.23\rightarrow-0.07$, geometry $-0.75\rightarrow-0.08$. A basketball court is $\sim$1/16
 the area of a pitch ($\sim$4$\times$ shorter linearly), so in normalized coordinates
 velocities differ 3--4$\times$; the learned use of velocity is scale-bound and does not
 cross, while scale-free positions do.

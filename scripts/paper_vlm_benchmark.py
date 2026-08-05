@@ -76,6 +76,31 @@ def main() -> None:
     far_items = [manifest[i] for i in preds if manifest.get(i) and manifest[i]["center_bin"] == "far"]
     cen_err = np.median([np.linalg.norm([0.5 - it["gt"]["x"], 0.5 - it["gt"]["y"]]) for it in far_items])
     print(f"Reference: camera-center baseline error in FAR bin = {cen_err:.3f} (n={len(far_items)})")
+
+    # --- leak control: flag rate + far-bin robustness EXCLUDING leak-flagged items ---
+    def flagged(rec):
+        lk = rec.get("leak")
+        return isinstance(lk, dict) and (lk.get("ball_visible") or lk.get("artifact_visible"))
+    n_flag = sum(1 for r in preds.values() if flagged(r))
+    print(f"\nLeak control: {n_flag}/{len(preds)} = {n_flag/len(preds):.1%} items flagged (ball/artifact visible)")
+    print("Far-bin win-rate excluding leak-flagged items:")
+    leak_excl = {}
+    for key, name in MODELS:
+        wins = []
+        for iid, rec in preds.items():
+            it = manifest.get(iid)
+            if it is None or it["center_bin"] != "far" or flagged(rec):
+                continue
+            p = xy(rec.get(key))
+            if p is None:
+                continue
+            gt = np.array([it["gt"]["x"], it["gt"]["y"]])
+            wins.append(np.linalg.norm(p - gt) < np.linalg.norm([0.5, 0.5] - gt))
+        if len(wins) >= 3:
+            wr = float(np.mean(wins))
+            leak_excl[key] = {"n": len(wins), "win": wr}
+            print(f"  {name:20} n={len(wins):>4}  win {wr:.0%}  (all-items {summary[key]['far']['win']:.0%})")
+    summary["_leak"] = {"flag_rate": n_flag / len(preds), "n_flagged": n_flag, "far_excl_leak": leak_excl}
     (OUT / "paper_vlm_benchmark.json").write_text(json.dumps(summary, indent=2))
     print(f"Saved {OUT/'paper_vlm_benchmark.json'}")
 

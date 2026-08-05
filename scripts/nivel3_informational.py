@@ -221,9 +221,9 @@ def main() -> None:
         hi, lo = coup[s] >= np.median(coup[s]), coup[s] < np.median(coup[s])
         bgap.append(np.median(err[s][hi]) - np.median(err[s][lo]))
     ci = lambda a: (float(np.percentile(a, 2.5)), float(np.percentile(a, 97.5)))
-    print(f"   corr(acoplamiento, error real) = +0.20  CI={ci(bce)}")
-    print(f"   corr(acoplamiento, std declar.) = -0.17  CI={ci(bcs)}")
-    print(f"   error(suelto) - error(trenzado) CI={ci(bgap)}  (>0 ⇒ suelto más difícil)")
+    print(f"   corr(acoplamiento, error real) = {np.mean(bce):+.2f}  CI={ci(bce)}")
+    print(f"   corr(acoplamiento, std declar.) = {np.mean(bcs):+.2f}  CI={ci(bcs)}")
+    print(f"   error(suelto) - error(trenzado) = {np.mean(bgap):+.3f}  CI={ci(bgap)}  (>0 ⇒ suelto más difícil)")
 
     res = {"point_error_median": float(np.median(err)),
            "ci_corr_coupling_error": ci(bce), "ci_corr_coupling_std": ci(bcs),

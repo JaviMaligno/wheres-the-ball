@@ -112,3 +112,12 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
 
 Note: the earlier injection anomaly in one review run was NOT from any repo file (the repro reviewer
 explicitly scanned and found no suspicious content); the codebase is clean.
+
+## ROUND-2 re-review (2026-08-05): verdict moved reject → weak-accept/accept
+
+Re-ran the 5-reviewer adversarial panel on the strengthened paper. Aggregate: **reject/major-revision → weak-accept (accept-leaning)**, unanimous improvement.
+- Clarity: borderline → **accept** (clean). Fact-check: several errors → **0 corrections**. Novelty: **reject → weak accept**. Reproducibility: blockers → **minor revision**. Statistical rigor: **reject → weak accept**.
+- Two reviewers converged on the SAME residual must-fix: B5 leak reporting. FIXED in this pass: reported 12.7% flag rate + far-bin excl-leak robustness (GPT 52→54, Opus 44→42, Sonnet 36→34, Llama 34→32) in §4.1, scripted it in paper_vlm_benchmark.py, softened "not recoverable".
+- Also polished: "at/below chance" → "none clears it (GPT/Opus ~chance, Sonnet/Llama below)"; §4.4 de-densified (leaky-split → footnote) + penalty-ratio defined; still/settled/dead-ball unified to "still"; Table 1 order/hedge aligned; F8 hard-coded prints fixed in nivel3_informational.py.
+- Every headline number reproduces to the digit from the JSONs (fact-checker + stat reviewer both). No injection content anywhere (repo confirmed clean).
+- Remaining non-blockers (disclosed, not fixable without resources): Claude-via-harness interface caveat (a clean-API Claude run would push to clear accept), far-bin/framing entanglement, GT-position ceiling, no family-wise correction.
