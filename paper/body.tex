@@ -16,8 +16,9 @@ Our contributions:
   \item A \textbf{de-biased benchmark} ($n=260$) on SoccerNet-Tracking broadcast frames
   with the ball removed by LaMa inpainting~\cite{suvorov2022lama} and a leak control (a VLM
   check confirming the inpainted ball is not recoverable from the image),
-  balancing ball position to neutralize the ball-following camera. No current frontier
-  VLM (GPT-5.4, Llama-4-Maverick) beats a camera-center baseline on off-center balls.
+  balancing ball position to neutralize the ball-following camera. None of four current
+  frontier VLMs (GPT-5.4, Claude Opus 4.8, Sonnet 4.6, Llama-4-Maverick) beats a
+  camera-center baseline on off-center balls.
   \item A \textbf{scale-up to 12 matches across two leagues} showing interpretable
   geometry recovers the deep specialist, and that the localization signal is
   \emph{collective motion}, with the \emph{still ball} as the model's blind spot.
@@ -49,7 +50,7 @@ instead \emph{remove} the object and de-bias the camera, so the task measures sp
 SoccerNet-Tracking~\cite{cioppa2022soccernet}, Metrica~\cite{metrica2020},
 SkillCorner~\cite{skillcorner2020}, NBA SportVU~\cite{sportvu2016} (ball as target only); a
 permutation-invariant Deep Set~\cite{zaheer2017deepsets}; a mixture-density
-head~\cite{bishop1994mdn}; persistent homology~\cite{ripser2021} features (which add nothing
+head~\cite{bishop1994mdn}; persistent homology~\cite{ripser2018} features (which add nothing
 over plain geometry).
 
 \section{Task, Data, and Method}
@@ -224,5 +225,25 @@ A hidden ball is found through motion. Frontier models have the intuition faintl
 cannot act on it; a tiny specialist reads it sharply, and the mechanism is interpretable
 geometry. The one thing none of them do is locate a ball that has stopped moving and
 drifted from the crowd.
+
+\appendix
+\section{Reproducibility details}
+\textbf{Features (11, per frame, normalized pitch coords).} centroid; velocity-weighted
+centroid; fastest player; densest cluster; motion-ray convergence point; closest opposing
+pair (Delaunay); home-team and away-team centroids; team spread; mean and max speed. The
+image-space specialist (Fig.~\ref{fig:vlm}) drops the velocity-derived features (none are
+defined from a single frame). \textbf{Models.} Deep Sets: $\phi,\rho$ MLPs, width 64,
+mean+max pooling; trained with Adam ($10^{-3}$), batch 256, a 10\% validation split with
+early stopping (patience 8, eval every 200 steps, cap 4000), 3 seeds. GBM:
+gradient-boosted trees, 300 iterations, one per coordinate. MDN: 5-component Gaussian
+mixture, 20 epochs. \textbf{Benchmark build.} SoccerNet-Tracking test+train, sample every
+25 frames, min-gap 100, per-clip cap 5; ball mask padded by speed (1.5\,px per px/frame,
+cap 60); LaMa via iopaint 1.6.0 (CPU). Center bins: near $<0.15$, mid $<0.30$, far
+$\ge0.30$ from frame centre. \textbf{VLMs.} single image, neutral prompt, one shot;
+GPT-5.4 / Llama-4-Maverick via Azure, Claude Opus 4.8 / Sonnet 4.6 via the agent harness.
+\textbf{Stats.} 95\% CIs are 2000--10000-sample bootstraps; the ``12/12'' counts are per-match
+sign checks (leave-one-match-out). Reported effects survive a label-shuffle control (real
+0.099 vs.\ shuffled 0.403) but we apply no family-wise correction across the reported
+comparisons.
 
 {\small \bibliographystyle{plain} \bibliography{refs}}

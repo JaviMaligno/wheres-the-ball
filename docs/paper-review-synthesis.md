@@ -96,11 +96,9 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
 - Terminology: unify Deep Sets / specialist / black box; keep *still* (speed) vs *off-center/loose*
   (distance-to-mass) as **two distinct axes** (§4.3 is still-axis, §4.5 is off-center-axis).
 - Drop "pre-registered" for the TDA rule (no timestamped registration) or register it.
-- Reproducibility appendix: hyperparams (d_h, steps, K epochs, GBM max_iter), feature table (all
-  20 cols + `converge`/`team_contact` defs, SPEED_MIN), bin & still thresholds, VLM decoding params
-  (temp/max_tokens/seed) + model snapshot dates.
-- Citation hygiene: `ripser` bib year (2018 vs key 2021); add model cards for GPT-5.4/Llama-4/Claude.
-- Multiple comparisons across bins×models×features with no family-wise correction — note it.
+- Reproducibility appendix DONE: features (11), Deep Sets/GBM/MDN hyperparams, benchmark build, bins, VLM interfaces, stats + shuffle control + no-family-wise-correction note.
+- Citation hygiene DONE: ripser key fixed to ripser2018. (model cards for GPT/Llama/Claude: left as system-card-less, noted as snapshots in Limitations.)
+- Multiple-comparisons note DONE (in the reproducibility appendix).
 
 ## Proposed execution order
 
