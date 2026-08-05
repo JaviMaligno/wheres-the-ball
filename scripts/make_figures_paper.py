@@ -27,12 +27,13 @@ plt.rcParams.update({"font.size": 11, "figure.dpi": 150, "axes.grid": True,
 # ---- fig1: trained specialist vs VLMs vs camera-center, same far items ----
 vlm = json.loads((F1 / "paper_vlm_benchmark.json").read_text())
 bridge = json.loads((F1 / "paper_bridge.json").read_text())
-fig, ax = plt.subplots(figsize=(6.8, 3.7))
+fig, ax = plt.subplots(figsize=(7.6, 3.7))
 # specialist first (the trained head-to-head from B3), then the VLMs
 sp_lo = (bridge["specialist_far_win"] * 100 - bridge["specialist_far_win_ci"][0])
 sp_hi = (bridge["specialist_far_win_ci"][1] - bridge["specialist_far_win"] * 100)
 bars = [("Specialist\n(trained)", bridge["specialist_far_win"] * 100, sp_lo, sp_hi, TEAL)]
-for name, key in [("GPT-5.4", "gpt"), ("Llama-4-\nMaverick", "llama4")]:
+for name, key in [("GPT-5.4", "gpt"), ("Opus 4.8", "claude_opus"),
+                  ("Sonnet 4.6", "claude"), ("Llama-4-\nMaverick", "llama4")]:
     far = vlm.get(key, {}).get("far")
     if far:
         bars.append((name, far["win"] * 100, (far["win"] - far["win_ci"][0]) * 100,

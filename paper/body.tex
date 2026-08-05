@@ -78,7 +78,7 @@ Table~\ref{tab:overview} summarizes the six findings; each is detailed below.
 \toprule
 Finding & Key result (12 matches / $n{=}260$) \\
 \midrule
-VLMs vs.\ specialist (far) & specialist wins $68\%$ vs.\ camera; GPT-5.4 $52\%$, Llama-4 $34\%$ \\
+VLMs vs.\ specialist (far) & specialist wins $68\%$ vs.\ camera; all 4 frontier VLMs $\le52\%$ (GPT-5.4 $52$, Opus $44$, Sonnet $36$, Llama-4 $34$) \\
 Geometry $\approx$ deep & geo $0.099$ recovers $91\%$ of tuned deep $0.087$; $>$ pitch control $0.186$, centroid $0.213$ \\
 Signal is motion & removing velocity costs $0.035$, 12/12 \\
 Stillness blind spot & still ball hardest; velocity useless when still (12/12); in-flight direction $32^\circ$ \\
@@ -95,11 +95,12 @@ Topology & adds nothing over geometry ($0.258$ vs.\ $0.111$) \\
 On the de-biased set ($n=260$: 80 near / 60 mid / 120 far), we prompt current frontier
 VLMs to output ball coordinates on the LaMa-inpainted image. The decisive bin is
 \emph{far}: off-center balls where the camera-center baseline (error $0.362$) is weak.
-No current VLM reliably beats that baseline there. By win-rate (the fraction of items whose
-prediction is closer to the ball than the frame centre), GPT-5.4 is no better than chance
-($52\%$, CI $[43,62]$) and Llama-4-Maverick is \emph{below} it ($34\%$, CI $[25,42]$;
-Fig.~\ref{fig:vlm}). On median error GPT-5.4 only ties the baseline ($0.354$ vs.\ $0.362$). Predicted--ground-truth correlation in the
-far bin is weak (GPT-5.4 $r_y=0.29$; Llama-4 $r_y=0.07$). VLMs post good medians only on
+None of the four current frontier VLMs reliably beats that baseline there. By win-rate (the
+fraction of items whose prediction is closer to the ball than the frame centre) all sit at or
+below chance: GPT-5.4 $52\%$ (CI $[43,62]$), Claude Opus 4.8 $44\%$ ($[35,53]$), Claude
+Sonnet 4.6 $36\%$ ($[28,45]$), Llama-4-Maverick $34\%$ ($[25,42]$; Fig.~\ref{fig:vlm}). Even
+GPT-5.4, the strongest, only ties the baseline on median error ($0.354$ vs.\ $0.362$), and
+far-bin correlation with the truth is weak ($r_y\le0.29$). VLMs post good medians only on
 near-center items, where the camera has already done the work. As a head-to-head on the
 \emph{same} far items and the same input (player positions), a small specialist trained by
 5-fold cross-validation wins $68\%$ (CI $[59,76]$, median $0.289$)---clearing the baseline
@@ -110,9 +111,9 @@ so the specialist is not merely following the crowd.
 \includegraphics[width=\figw]{figures/fig1_vlm.pdf}
 \caption{Off-center (far) balls, same $n=120$ items (Llama-4 $n=118$), 95\% bootstrap CIs.
 A positions-only specialist trained on these items (5-fold CV) beats the camera-center
-baseline (dashed); no current frontier VLM does---GPT-5.4 no better than chance by win-rate,
-Llama-4-Maverick below it. Claude Opus 4.8 / Sonnet 4.6 runs were partial (API-credit
-limited, few far items) and omitted here.}
+baseline (dashed); none of the four current frontier VLMs does. GPT-5.4, Opus 4.8, and
+Sonnet 4.6 were run single-shot via the Claude/OpenAI interfaces available to us (Claude
+via the agent harness; see Limitations), Llama-4 via Azure.}
 \label{fig:vlm}
 \end{figure}
 
@@ -202,12 +203,15 @@ velocity-weighted centroid. Limitations: the field-space specialist and image-sp
 specialist use ground-truth player positions (an information ceiling), and the specialist
 vs.\ VLM head-to-head (Fig.~\ref{fig:vlm}) shares items and input but the specialist is
 still handed clean positions; the VLM benchmark is a focused $n$ with bootstrap CIs, and
-two of the models (Azure-hosted GPT-5.4, Llama-4-Maverick) are versioned snapshots whose
-behaviour drifts, so ``no current VLM beats the baseline'' is a dated claim, not a general
-one. In the far bin, ``off-center ball'' is partly entangled with unusual (transition/wide)
+the frontier VLMs are versioned snapshots whose behaviour drifts, so ``no current VLM beats
+the baseline'' is a dated claim, not a general one. The four VLMs were also run through
+different interfaces---GPT-5.4 and Llama-4-Maverick via Azure APIs, Claude Opus 4.8 and
+Sonnet 4.6 single-shot through the Claude Code agent harness (Azure had no Claude quota and
+our Anthropic API credit was exhausted); the harness constrains each call to one image and
+the same prompt, but is not identical to a raw API call, a caveat for the two Claude rows.
+In the far bin, ``off-center ball'' is partly entangled with unusual (transition/wide)
 camera framing. Learned models are single-architecture; the reported $\pm$ is inter-match,
-with inter-seed variance separately small ($\le0.002$). The Claude Opus 4.8 / Sonnet 4.6
-runs were incomplete (API-credit limited) and are excluded from the headline comparison.
+with inter-seed variance separately small ($\le0.002$).
 
 \paragraph{Data and reproducibility.} Code, feature definitions, and the pinned inpainting
 pipeline are released. Player/ball tracks come from SoccerNet-Tracking, Metrica, and

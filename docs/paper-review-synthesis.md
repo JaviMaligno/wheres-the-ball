@@ -45,8 +45,12 @@ inconsistency, and missing leak/inpainting reproducibility — plus factual clea
 - **B6. Fix inpainting reproducibility.** Results use `masked/*.png` but `inpaint_lama.py` writes
   `.jpg`, and `uvx --from iopaint` floats the version. Reconcile which script produced the pngs,
   pin the iopaint/LaMa version + settings (device, checkpoint, resize), document. [local ~15min]
-- **B7. Complete the Claude runs.** Opus 96/260, Sonnet 69/260 (Sonnet 0 far items) — partial due
-  to Anthropic credit exhaustion. NEEDS credit recharge (Javier), then finish. [needs credit; ~$15, ~2–3h]
+- **B7. DONE (2026-08-05).** Azure sandbox HAS Claude (swedencentral) but no quota; API credit out. Completed
+  Opus 4.8 + Sonnet 4.6 on all 260 via the Claude Code agent harness (subagents, single-shot, same neutral
+  prompt) — a 520-agent workflow (hit the weekly limit mid-run, finished on resume Aug 5). Far bin: Opus 44%
+  [35,53], Sonnet 36% [28,45] — both at/below chance, like GPT (52%) and Llama (34%). ALL FOUR frontier VLMs
+  fail; specialist 68%. Fig 1 now shows all 5 bars; abstract/§4.1/Table 1 updated; Limitations notes the
+  harness-vs-API method caveat for the two Claude rows.
 
 ## FACTUAL ERRORS — fix regardless (quick, no compute)
 

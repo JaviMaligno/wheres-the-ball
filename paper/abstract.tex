@@ -1,9 +1,9 @@
 Frontier vision--language models cannot locate a ball they cannot see; a tiny model can.
 We probe this with a deliberately narrow task: infer a \emph{hidden} ball's position from
 the players alone, the way a spectator does. On a de-biased benchmark of broadcast frames
-with the ball inpainted away ($n=260$), no current frontier VLM (GPT-5.4, Llama-4-Maverick)
-reliably beats a camera-center baseline on off-center balls---GPT-5.4 is no better than
-chance by win-rate, Llama-4 below it. A permutation-invariant network of $\sim$13k
+with the ball inpainted away ($n=260$), none of four current frontier VLMs (GPT-5.4, Claude
+Opus 4.8, Claude Sonnet 4.6, Llama-4-Maverick) reliably beats a camera-center baseline on
+off-center balls---all sit at or below chance by win-rate. A permutation-invariant network of $\sim$13k
 parameters ($\sim$50\,kB), trained only on player positions and velocities, cracks the same
 off-center cases. We then open this
 specialist. Across \textbf{12 matches from two leagues} (250k frames, leave-one-match-out),
